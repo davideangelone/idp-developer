@@ -10,7 +10,6 @@ import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -38,21 +37,21 @@ public class SecurityConfig {
     }
 
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) {
         return authenticationConfiguration.getAuthenticationManager();
     }
 
     @Bean
     @Order(2)
-    public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) {
         http
-            .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/login", "/error").permitAll()
-                .requestMatchers("/actuator/**").authenticated()
-                .anyRequest().authenticated()
-            )
-            .formLogin(Customizer.withDefaults())
-            .authenticationProvider(daoAuthenticationProvider());
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/login", "/error").permitAll()
+                        .requestMatchers("/actuator/**").authenticated()
+                        .anyRequest().authenticated()
+                )
+                .formLogin(Customizer.withDefaults())
+                .authenticationProvider(daoAuthenticationProvider());
 
         return http.build();
     }

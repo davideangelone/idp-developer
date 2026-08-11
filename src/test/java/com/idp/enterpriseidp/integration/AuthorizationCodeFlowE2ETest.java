@@ -32,6 +32,7 @@ import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
+import tools.jackson.databind.ObjectMapper;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -244,7 +245,7 @@ class AuthorizationCodeFlowE2ETest extends AbstractIdpIntegrationMockMvcTest {
         String codeChallenge = generateCodeChallenge(codeVerifier);
         String state = randomState();
 
-        String code = performAuthorizeAndConsent(codeVerifier, codeChallenge, state, redirectUrlClient);
+        String code = performAuthorizeAndConsent(codeChallenge, state, redirectUrlClient);
         assertThat(code).isNotNull().isNotEmpty();
 
         // use a different verifier
@@ -306,7 +307,7 @@ class AuthorizationCodeFlowE2ETest extends AbstractIdpIntegrationMockMvcTest {
         String codeChallenge = generateCodeChallenge(codeVerifier);
         String state = randomState();
 
-        String code = performAuthorizeAndConsent(codeVerifier, codeChallenge, state, redirectUrlClient);
+        String code = performAuthorizeAndConsent(codeChallenge, state, redirectUrlClient);
 
         String tokenBody = "grant_type=authorization_code"
                 + "&code=" + code
@@ -327,7 +328,7 @@ class AuthorizationCodeFlowE2ETest extends AbstractIdpIntegrationMockMvcTest {
         assertThat(locationOf(logoutResponse)).isEqualTo(postLogoutRedirectUrl);
     }
 
-    private String performAuthorizeAndConsent(String codeVerifier, String codeChallenge, String state, String redirectUri) throws Exception {
+    private String performAuthorizeAndConsent(String codeChallenge, String state, String redirectUri) throws Exception {
         String authQuery = "response_type=code"
                 + "&client_id=" + clientId
                 + "&redirect_uri=" + java.net.URLEncoder.encode(redirectUri, StandardCharsets.UTF_8)
@@ -414,7 +415,7 @@ class AuthorizationCodeFlowE2ETest extends AbstractIdpIntegrationMockMvcTest {
         JWK jwk = jwkSet.getKeyByKeyId(header.getKeyID());
         if (jwk == null) {
             assertThat(jwkSet.getKeys()).isNotEmpty();
-            jwk = jwkSet.getKeys().get(0);
+            jwk = jwkSet.getKeys().getFirst();
         }
         assertThat(jwt.verify(new RSASSAVerifier(jwk.toRSAKey().toRSAPublicKey()))).isTrue();
     }
@@ -429,8 +430,8 @@ class AuthorizationCodeFlowE2ETest extends AbstractIdpIntegrationMockMvcTest {
         return location.startsWith("http") ? URI.create(location) : URI.create(baseUrl + location);
     }
 
-    private Map<String, Object> parseJson(String json) throws Exception {
-        var mapper = new tools.jackson.databind.ObjectMapper();
+    private Map<String, Object> parseJson(String json) {
+        var mapper = new ObjectMapper();
         return mapper.readValue(json, Map.class);
     }
 

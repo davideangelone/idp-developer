@@ -34,7 +34,7 @@ public class User {
     @Column(nullable = false, length = 100)
     private String email;
 
-    @Column(nullable = false, length = 255)
+    @Column(nullable = false)
     private String password;
 
     @Column(length = 50)
@@ -43,7 +43,7 @@ public class User {
     @Column(length = 50)
     private String lastName;
 
-    @Column(length = 255)
+    @Column
     private String address;
 
     @Column(length = 20)

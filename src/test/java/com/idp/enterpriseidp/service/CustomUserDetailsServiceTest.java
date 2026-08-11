@@ -54,7 +54,7 @@ class CustomUserDetailsServiceTest {
         assertThat(details.isCredentialsNonExpired()).isTrue();
         assertThat(details.getAuthorities()).hasSize(1);
         assertThat(details.getAuthorities().iterator().next().getAuthority()).isEqualTo("ROLE_USER");
-        assertThat(((CustomUserDetailsService.CustomUserDetails) details).getUser()).isSameAs(user);
+        assertThat(((CustomUserDetailsService.CustomUserDetails) details).user()).isSameAs(user);
     }
 
     @Test
@@ -93,7 +93,7 @@ class CustomUserDetailsServiceTest {
 
         CustomUserDetailsService.CustomUserDetails details = new CustomUserDetailsService.CustomUserDetails(user);
 
-        assertThat(details.getUser()).isSameAs(user);
+        assertThat(details.user()).isSameAs(user);
         assertThat(details.getUsername()).isEqualTo("john");
         assertThat(details.getPassword()).isEqualTo("encoded-password");
         assertThat(details.isEnabled()).isFalse();

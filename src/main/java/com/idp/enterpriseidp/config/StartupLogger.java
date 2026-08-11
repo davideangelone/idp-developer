@@ -2,6 +2,7 @@ package com.idp.enterpriseidp.config;
 
 import java.util.List;
 
+import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -28,7 +29,7 @@ public class StartupLogger implements ApplicationListener<ApplicationReadyEvent>
     private String address;
 
     @Override
-    public void onApplicationEvent(ApplicationReadyEvent event) {
+    public void onApplicationEvent(@NonNull ApplicationReadyEvent event) {
         String baseUrl = String.format("http://%s:%s", address, port);
         logger.info("====================================================================");
         logger.info("Applicazione avviata con successo!");

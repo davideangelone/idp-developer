@@ -44,20 +44,7 @@ class OAuth2TokenCustomizerTest {
     @Test
     @DisplayName("Aggiunge i claim custom quando il principal e CustomUserDetails")
     void addsCustomClaims_whenPrincipalIsCustomUserDetails() {
-        User user = new User();
-        user.setId(10L);
-        user.setUsername("test");
-        user.setEmail("test@example.com");
-        user.setPassword("encoded");
-        user.setFirstName("Mario");
-        user.setLastName("Rossi");
-        user.setAddress("Via Roma 1");
-        user.setPhoneNumber("+39 333 1234567");
-        user.setEnabled(true);
-        user.setEmailVerified(true);
-
-        CustomUserDetailsService.CustomUserDetails customUserDetails =
-                new CustomUserDetailsService.CustomUserDetails(user);
+        CustomUserDetailsService.CustomUserDetails customUserDetails = getCustomUserDetails();
 
         when(context.getPrincipal()).thenReturn(authentication);
         when(authentication.getPrincipal()).thenReturn(customUserDetails);
@@ -87,6 +74,22 @@ class OAuth2TokenCustomizerTest {
                 "+39 333 1234567",
                 "test"
         );
+    }
+
+    private CustomUserDetailsService.CustomUserDetails getCustomUserDetails() {
+        User user = new User();
+        user.setId(10L);
+        user.setUsername("test");
+        user.setEmail("test@example.com");
+        user.setPassword("encoded");
+        user.setFirstName("Mario");
+        user.setLastName("Rossi");
+        user.setAddress("Via Roma 1");
+        user.setPhoneNumber("+39 333 1234567");
+        user.setEnabled(true);
+        user.setEmailVerified(true);
+
+        return new CustomUserDetailsService.CustomUserDetails(user);
     }
 
     @Test

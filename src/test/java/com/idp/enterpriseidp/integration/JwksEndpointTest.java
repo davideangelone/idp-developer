@@ -36,7 +36,7 @@ class JwksEndpointTest extends AbstractIdpIntegrationMockMvcTest {
         List<JWK> keys = jwkSet.getKeys();
 
         assertThat(keys).isNotEmpty();
-        JWK key = keys.get(0);
+        JWK key = keys.getFirst();
         assertThat(key.getKeyType().getValue()).isEqualTo("RSA");
         assertThat(key.getKeyID()).isNotNull();
         assertThat(key.toRSAKey().toPublicKey()).isNotNull();

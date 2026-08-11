@@ -41,15 +41,6 @@ public abstract class AbstractIdpIntegrationMockMvcTest {
     @Value("${app.username1}")
     protected String username1;
 
-    @Value("${app.password1}")
-    protected String password1;
-
-    @Value("${app.username2}")
-    protected String username2;
-
-    @Value("${app.password2}")
-    protected String password2;
-
     protected String generateCodeVerifier() {
         byte[] bytes = new byte[32];
         new SecureRandom().nextBytes(bytes);

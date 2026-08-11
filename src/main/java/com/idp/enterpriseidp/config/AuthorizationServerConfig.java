@@ -6,11 +6,11 @@ import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
 import java.time.Duration;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
 import com.idp.enterpriseidp.domain.User;
-import com.idp.enterpriseidp.repository.UserRepository;
 import com.idp.enterpriseidp.service.CustomUserDetailsService;
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.RSAKey;
@@ -56,8 +56,6 @@ public class AuthorizationServerConfig {
             OidcScopes.PHONE
     );
 
-    private final UserRepository userRepository;
-
     @Value("${app.issuer-url}")
     private String issuerUrl;
 
@@ -78,10 +76,6 @@ public class AuthorizationServerConfig {
 
     @Value("${oauth2.postLogoutRedirectUrl}")
     private String postLogoutRedirectUrl;
-
-    public AuthorizationServerConfig(UserRepository userRepository) {
-        this.userRepository = userRepository;
-    }
 
     @Bean
     public RegisteredClientRepository registeredClientRepository() {
@@ -190,8 +184,7 @@ public class AuthorizationServerConfig {
             }
 
             Object userDetails = principal.getPrincipal();
-            if (userDetails instanceof CustomUserDetailsService.CustomUserDetails customUserDetails) {
-                User user = customUserDetails.getUser();
+            if (userDetails instanceof CustomUserDetailsService.CustomUserDetails(User user)) {
                 context.getClaims().claim("sub", user.getId());
                 context.getClaims().claim("name", user.getFirstName() + " " + user.getLastName());
                 context.getClaims().claim("given_name", user.getFirstName());
@@ -201,6 +194,18 @@ public class AuthorizationServerConfig {
                 context.getClaims().claim("address", user.getAddress());
                 context.getClaims().claim("phone_number", user.getPhoneNumber());
                 context.getClaims().claim("preferred_username", user.getUsername());
+            }
+
+            if (null != principal.getName()) {
+                logger.info(
+                        "Generating token: user={}, tokenType={}, clientId={}, grantType={}, scopes={}, claims={}",
+                        principal.getName(),
+                        context.getTokenType().getValue(),
+                        context.getRegisteredClient().getClientId(),
+                        Optional.ofNullable(context.getAuthorizationGrantType()).map(AuthorizationGrantType::getValue).orElse(null),
+                        context.getAuthorizedScopes(),
+                        context.getClaims().build().getClaims()
+                );
             }
         };
     }
