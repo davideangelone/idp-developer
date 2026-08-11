@@ -120,10 +120,11 @@ public class AuthorizationServerConfig {
     public JWKSource<SecurityContext> jwkSource(
             @Value("${app.jwt.key-store}") Resource keyStoreResource,
             @Value("${app.jwt.key-store-password}") String keyStorePassword,
+            @Value("${app.jwt.key-store-type}") String keyStoreType,
             @Value("${app.jwt.key-alias}") String keyAlias,
             @Value("${app.jwt.key-password}") String keyPassword) throws Exception {
 
-        KeyStore keyStore = KeyStore.getInstance("PKCS12");
+        KeyStore keyStore = KeyStore.getInstance(keyStoreType);
 
         try (InputStream inputStream = keyStoreResource.getInputStream()) {
             keyStore.load(inputStream, keyStorePassword.toCharArray());
