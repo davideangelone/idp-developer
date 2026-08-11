@@ -567,17 +567,23 @@ L'obiettivo è verificare il comportamento dell'IdP come Authorization Server/OI
 Le principali proprietà utilizzate dal POC sono:
 
 ```yaml
-server:
-  port: 9080
+client:
+  url: http://localhost:8080
 
 app:
-  issuer-url: http://localhost:9080
+  issuer-url: http://localhost:${server.port}
+  authorizationConsent: true
+  username1: test
+  password1: password
+  username2: test2
+  password2: password
 
 oauth2:
   clientId: oidc-client
   clientSecret: secret
-  redirectUrlClient: http://localhost:8080/login/oauth2/code/oidc-client
+  redirectUrlClient: ${client.url}/login/oauth2/code/${oauth2.clientId}
   redirectUrlTest: https://oauth.pstmn.io/v1/callback
+  postLogoutRedirectUrl: ${client.url}/
 ```
 
 Questi valori sono destinati esclusivamente all'ambiente locale di sviluppo e testing.
