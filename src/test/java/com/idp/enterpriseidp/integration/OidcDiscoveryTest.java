@@ -27,13 +27,14 @@ class OidcDiscoveryTest extends AbstractIdpIntegrationMockMvcTest {
 
         Map<String, Object> config = objectMapper.readValue(result.getResponse().getContentAsString(), Map.class);
 
-        assertThat(config.get("issuer")).isEqualTo(issuerUrl);
-        assertThat(config).containsKeys(
-                "authorization_endpoint",
-                "token_endpoint",
-                "jwks_uri",
-                "end_session_endpoint"
-        );
+        assertThat(config)
+                .containsEntry("issuer", issuerUrl)
+                .containsKeys(
+                    "authorization_endpoint",
+                    "token_endpoint",
+                    "jwks_uri",
+                    "end_session_endpoint"
+                );
 
         String authorizationEndpoint = (String) config.get("authorization_endpoint");
         String tokenEndpoint = (String) config.get("token_endpoint");

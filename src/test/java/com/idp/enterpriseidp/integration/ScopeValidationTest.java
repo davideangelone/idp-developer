@@ -29,7 +29,7 @@ class ScopeValidationTest extends AbstractIdpIntegrationMockMvcTest {
                 .andReturn();
 
         Map<String, Object> error = new ObjectMapper().readValue(result.getResponse().getContentAsString(), Map.class);
-        assertThat(error.get("error")).isEqualTo("invalid_scope");
+        assertThat(error).containsEntry("error", "invalid_scope");
     }
 
     @Test

@@ -167,8 +167,9 @@ class AuthorizationCodeFlowE2ETest extends AbstractIdpIntegrationMockMvcTest {
                 + "&code_verifier=" + codeVerifier;
         String tokensJson = postToken(tokenBody);
         Map<String, Object> tokens = parseJson(tokensJson);
-        assertThat(tokens).containsKeys("access_token", "refresh_token", "id_token", "token_type", "expires_in");
-        assertThat(tokens.get("token_type")).isEqualTo("Bearer");
+        assertThat(tokens)
+                .containsKeys("access_token", "refresh_token", "id_token", "token_type", "expires_in")
+                .containsEntry("token_type", "Bearer");
 
         String accessToken = (String) tokens.get("access_token");
         String idToken = (String) tokens.get("id_token");
@@ -212,10 +213,11 @@ class AuthorizationCodeFlowE2ETest extends AbstractIdpIntegrationMockMvcTest {
         // 10. refresh token checks
         String refreshedJson = postToken("grant_type=refresh_token&refresh_token=" + refreshToken);
         Map<String, Object> refreshed = parseJson(refreshedJson);
-        assertThat(refreshed).containsKey("access_token");
+        assertThat(refreshed).containsKey("access_token")
+                             .containsEntry("token_type", "Bearer");
         String newAccessToken = (String) refreshed.get("access_token");
         assertThat(newAccessToken).isNotEqualTo(accessToken);
-        assertThat(refreshed.get("token_type")).isEqualTo("Bearer");
+
         // refresh scope is space-delimited String
         Object refreshedScope = refreshed.get("scope");
         assertThat(refreshedScope).isInstanceOf(String.class);
@@ -235,7 +237,7 @@ class AuthorizationCodeFlowE2ETest extends AbstractIdpIntegrationMockMvcTest {
                 HttpResponse.BodyHandlers.ofString());
         assertThat(replayResponse.statusCode()).isEqualTo(HttpStatus.BAD_REQUEST.value());
         Map<String, Object> replayError = parseJson(replayResponse.body());
-        assertThat(replayError.get("error")).isEqualTo("invalid_grant");
+        assertThat(replayError).containsEntry("error", "invalid_grant");
     }
 
     @Test
@@ -263,7 +265,7 @@ class AuthorizationCodeFlowE2ETest extends AbstractIdpIntegrationMockMvcTest {
                 HttpResponse.BodyHandlers.ofString());
         assertThat(response.statusCode()).isEqualTo(HttpStatus.BAD_REQUEST.value());
         Map<String, Object> error = parseJson(response.body());
-        assertThat(error.get("error")).isEqualTo("invalid_grant");
+        assertThat(error).containsEntry("error", "invalid_grant");
     }
 
     @Test
@@ -295,9 +297,10 @@ class AuthorizationCodeFlowE2ETest extends AbstractIdpIntegrationMockMvcTest {
         // redirect_uri carrying error=invalid_request (no authorization code is issued).
         assertThat(response.statusCode()).isEqualTo(HttpStatus.FOUND.value());
         String location = response.headers().firstValue("Location").orElse(null);
-        assertThat(location).isNotNull();
-        assertThat(location).contains("error=invalid_request");
-        assertThat(location).doesNotContain("code=");
+        assertThat(location)
+                .isNotNull()
+                .contains("error=invalid_request")
+                .doesNotContain("code=");
     }
 
     @Test

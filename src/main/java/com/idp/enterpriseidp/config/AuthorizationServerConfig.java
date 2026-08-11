@@ -160,7 +160,7 @@ public class AuthorizationServerConfig {
     @Order(1)
     public SecurityFilterChain authorizationServerSecurityFilterChain(HttpSecurity http) {
         http
-                .oauth2AuthorizationServer((authorizationServer) -> {
+                .oauth2AuthorizationServer(authorizationServer -> {
                     http.securityMatcher(authorizationServer.getEndpointsMatcher());
                     authorizationServer
                             .oidc(oidc -> oidc
@@ -174,11 +174,11 @@ public class AuthorizationServerConfig {
                                     )
                             );
                 })
-                .authorizeHttpRequests((authorize) ->
+                .authorizeHttpRequests(authorize ->
                         authorize
                                 .anyRequest().authenticated()
                 )
-                .exceptionHandling((exceptions) -> exceptions
+                .exceptionHandling(exceptions -> exceptions
                         .defaultAuthenticationEntryPointFor(
                                 new LoginUrlAuthenticationEntryPoint("/login"),
                                 new MediaTypeRequestMatcher(org.springframework.http.MediaType.TEXT_HTML)

@@ -48,7 +48,7 @@ class CustomUserDetailsServiceTest {
         assertThat(details).isInstanceOf(CustomUserDetailsService.CustomUserDetails.class);
         assertThat(details.getUsername()).isEqualTo("test");
         assertThat(details.getPassword()).isEqualTo("encoded-password");
-        assertThat(details.isEnabled()).isEqualTo(true);
+        assertThat(details.isEnabled()).isTrue();
         assertThat(details.isAccountNonExpired()).isTrue();
         assertThat(details.isAccountNonLocked()).isTrue();
         assertThat(details.isCredentialsNonExpired()).isTrue();

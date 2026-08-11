@@ -28,7 +28,7 @@ class InvalidAuthorizationCodeTest extends AbstractIdpIntegrationMockMvcTest {
                 .andReturn();
 
         Map<String, Object> error = new ObjectMapper().readValue(result.getResponse().getContentAsString(), Map.class);
-        assertThat(error.get("error")).isEqualTo("invalid_grant");
+        assertThat(error).containsEntry("error", "invalid_grant");
     }
 
     @Test
@@ -45,6 +45,6 @@ class InvalidAuthorizationCodeTest extends AbstractIdpIntegrationMockMvcTest {
                 .andReturn();
 
         Map<String, Object> error = new ObjectMapper().readValue(result.getResponse().getContentAsString(), Map.class);
-        assertThat(error.get("error")).isEqualTo("invalid_grant");
+        assertThat(error).containsEntry("error", "invalid_grant");
     }
 }

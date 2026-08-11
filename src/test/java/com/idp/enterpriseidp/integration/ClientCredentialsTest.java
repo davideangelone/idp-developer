@@ -30,8 +30,9 @@ class ClientCredentialsTest extends AbstractIdpIntegrationMockMvcTest {
                 .andReturn();
 
         Map<String, Object> tokens = new ObjectMapper().readValue(result.getResponse().getContentAsString(), Map.class);
-        assertThat(tokens).containsKey("access_token");
-        assertThat(tokens.get("token_type")).isEqualTo("Bearer");
+        assertThat(tokens)
+                .containsKey("access_token")
+                .containsEntry("token_type", "Bearer");
         assertThat(tokens.get("expires_in")).isNotNull();
 
         String scope = (String) tokens.get("scope");
