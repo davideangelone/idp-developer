@@ -1,7 +1,8 @@
 package com.idp.enterpriseidp.config;
 
-import java.security.KeyPair;
-import java.security.KeyPairGenerator;
+import java.io.InputStream;
+import java.security.KeyStore;
+import java.security.cert.Certificate;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
 import java.time.Duration;
@@ -23,6 +24,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
+import org.springframework.core.io.Resource;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.OAuth2AuthorizationServerConfiguration;
@@ -115,20 +117,30 @@ public class AuthorizationServerConfig {
     }
 
     @Bean
-    public JWKSource<SecurityContext> jwkSource() throws Exception {
-        KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
-        keyPairGenerator.initialize(2048);
-        KeyPair keyPair = keyPairGenerator.generateKeyPair();
+    public JWKSource<SecurityContext> jwkSource(
+            @Value("${app.jwt.key-store}") Resource keyStoreResource,
+            @Value("${app.jwt.key-store-password}") String keyStorePassword,
+            @Value("${app.jwt.key-alias}") String keyAlias,
+            @Value("${app.jwt.key-password}") String keyPassword) throws Exception {
 
-        RSAPublicKey publicKey = (RSAPublicKey) keyPair.getPublic();
-        RSAPrivateKey privateKey = (RSAPrivateKey) keyPair.getPrivate();
+        KeyStore keyStore = KeyStore.getInstance("PKCS12");
+
+        try (InputStream inputStream = keyStoreResource.getInputStream()) {
+            keyStore.load(inputStream, keyStorePassword.toCharArray());
+        }
+
+        RSAPrivateKey privateKey = (RSAPrivateKey) keyStore.getKey(keyAlias, keyPassword.toCharArray());
+        Certificate certificate = keyStore.getCertificate(keyAlias);
+        RSAPublicKey publicKey = (RSAPublicKey) certificate.getPublicKey();
 
         RSAKey rsaKey = new RSAKey.Builder(publicKey)
                 .privateKey(privateKey)
-                .keyID(UUID.randomUUID().toString())
+                .keyID(keyAlias)
                 .build();
 
-        return new ImmutableJWKSet<>(new JWKSet(rsaKey));
+        return new ImmutableJWKSet<>(
+                new JWKSet(rsaKey)
+        );
     }
 
     @Bean

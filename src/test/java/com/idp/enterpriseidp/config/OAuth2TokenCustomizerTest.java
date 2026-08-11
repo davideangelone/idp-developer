@@ -38,7 +38,7 @@ class OAuth2TokenCustomizerTest {
 
     @BeforeEach
     void setUp() {
-        config = new AuthorizationServerConfig(null);
+        config = new AuthorizationServerConfig();
     }
 
     @Test

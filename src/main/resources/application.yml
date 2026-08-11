@@ -31,6 +31,12 @@ app:
   username2: test2
   password2: password
 
+  jwt:
+    key-store: classpath:idp-keystore.p12
+    key-store-password: changeit
+    key-alias: idp-signing
+    key-password: changeit
+
 oauth2:
   clientId: oidc-client
   clientSecret: secret
