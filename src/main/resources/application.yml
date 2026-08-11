@@ -1,0 +1,44 @@
+spring:
+  application:
+    name: enterprise-idp
+  datasource:
+    url: jdbc:h2:mem:idp-test;DB_CLOSE_DELAY=-1
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+      connection-timeout: 30000
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    open-in-view: false
+
+server:
+  port: 9080
+
+client:
+  url: http://localhost:8080
+
+app:
+  issuer-url: http://localhost:${server.port}
+  authorizationConsent: true
+  username1: test
+  password1: password
+  username2: test2
+  password2: password
+
+oauth2:
+  clientId: oidc-client
+  clientSecret: secret
+  redirectUrlClient: ${client.url}/login/oauth2/code/${oauth2.clientId}
+  redirectUrlTest: https://oauth.pstmn.io/v1/callback
+  postLogoutRedirectUrl: ${client.url}/
+
+logging:
+  level:
+    root: INFO
+    com.idp: INFO
