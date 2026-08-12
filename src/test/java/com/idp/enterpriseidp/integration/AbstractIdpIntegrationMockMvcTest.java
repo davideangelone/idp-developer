@@ -24,30 +24,32 @@ public abstract class AbstractIdpIntegrationMockMvcTest {
     protected MockMvc mockMvc;
 
     @Autowired
+    protected ObjectMapper objectMapper;
+
+    @Autowired
     protected AppProperties appProperties;
+
+    private final SecureRandom secureRandom = new SecureRandom();
+
+    protected String generateRandomState() {
+        byte[] bytes = new byte[16];
+        secureRandom.nextBytes(bytes);
+        return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
+    }
 
     protected String generateCodeVerifier() {
         byte[] bytes = new byte[32];
-        new SecureRandom().nextBytes(bytes);
+        secureRandom.nextBytes(bytes);
         return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
     }
 
     protected String generateCodeChallenge(String codeVerifier) throws Exception {
-        MessageDigest md = MessageDigest.getInstance("SHA-256");
-        byte[] digest = md.digest(codeVerifier.getBytes(StandardCharsets.US_ASCII));
+        byte[] digest = MessageDigest.getInstance("SHA-256")
+                .digest(codeVerifier.getBytes(StandardCharsets.US_ASCII));
         return Base64.getUrlEncoder().withoutPadding().encodeToString(digest);
     }
 
-    protected String extractCodeFromLocation(String location) {
-        if (location == null) {
-            return null;
-        }
-        org.springframework.web.util.UriComponentsBuilder builder =
-                org.springframework.web.util.UriComponentsBuilder.fromUriString(location);
-        return builder.build().getQueryParams().getFirst("code");
-    }
-
     protected Map<String, Object> parseJson(String json) {
-        return new ObjectMapper().readValue(json, new TypeReference<>() {});
+        return objectMapper.readValue(json, new TypeReference<>() {});
     }
 }

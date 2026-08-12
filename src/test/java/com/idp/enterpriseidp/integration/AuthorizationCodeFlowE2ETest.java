@@ -10,7 +10,6 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
-import java.security.SecureRandom;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Base64;
@@ -37,12 +36,10 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ActiveProfiles;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@ActiveProfiles("test")
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 class AuthorizationCodeFlowE2ETest extends AbstractIdpIntegrationMockMvcTest {
 
@@ -56,7 +53,6 @@ class AuthorizationCodeFlowE2ETest extends AbstractIdpIntegrationMockMvcTest {
 
     private String baseUrl;
     private HttpClient httpClient;
-    private final SecureRandom secureRandom = new SecureRandom();
 
     @BeforeEach
     void setUp() {
@@ -67,12 +63,6 @@ class AuthorizationCodeFlowE2ETest extends AbstractIdpIntegrationMockMvcTest {
                 .cookieHandler(cookieManager)
                 .followRedirects(HttpClient.Redirect.NEVER)
                 .build();
-    }
-
-    private String randomState() {
-        byte[] bytes = new byte[16];
-        secureRandom.nextBytes(bytes);
-        return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
     }
 
     private HttpRequest.Builder request(URI uri) {
@@ -89,8 +79,8 @@ class AuthorizationCodeFlowE2ETest extends AbstractIdpIntegrationMockMvcTest {
 
         String codeVerifier = generateCodeVerifier();
         String codeChallenge = generateCodeChallenge(codeVerifier);
-        String state = randomState();
-        String nonce = randomState();
+        String state = generateRandomState();
+        String nonce = generateRandomState();
 
         // 1. authorize -> expect 302 to /login
         String authQuery = "response_type=code"
@@ -276,7 +266,7 @@ class AuthorizationCodeFlowE2ETest extends AbstractIdpIntegrationMockMvcTest {
     void fullFlow_wrongCodeVerifier_returnsInvalidGrant() throws Exception {
         String codeVerifier = generateCodeVerifier();
         String codeChallenge = generateCodeChallenge(codeVerifier);
-        String state = randomState();
+        String state = generateRandomState();
 
         String code = performAuthorizeAndConsent(codeChallenge, state, appProperties.getOauth2().getRedirectUrlClient());
 
@@ -309,7 +299,7 @@ class AuthorizationCodeFlowE2ETest extends AbstractIdpIntegrationMockMvcTest {
                 + "&client_id=" + appProperties.getOauth2().getClientId()
                 + "&redirect_uri=" + URLEncoder.encode(appProperties.getOauth2().getRedirectUrlClient(), StandardCharsets.UTF_8)
                 + "&scope=" + URLEncoder.encode(SCOPES, StandardCharsets.UTF_8)
-                + "&state=" + randomState();
+                + "&state=" + generateRandomState();
         HttpResponse<String> authResponse = getAuthResponse(query);
 
         // SAS 1.2.4 rejects a missing PKCE after authentication with a redirect back to the
@@ -326,7 +316,7 @@ class AuthorizationCodeFlowE2ETest extends AbstractIdpIntegrationMockMvcTest {
     void fullFlow_logoutWithRealIdToken_redirectsToPostLogoutUri() throws Exception {
         String codeVerifier = generateCodeVerifier();
         String codeChallenge = generateCodeChallenge(codeVerifier);
-        String state = randomState();
+        String state = generateRandomState();
 
         String code = performAuthorizeAndConsent(codeChallenge, state, appProperties.getOauth2().getRedirectUrlClient());
 
