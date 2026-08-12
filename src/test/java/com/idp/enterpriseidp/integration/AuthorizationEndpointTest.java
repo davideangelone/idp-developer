@@ -18,8 +18,8 @@ class AuthorizationEndpointTest extends AbstractIdpIntegrationMockMvcTest {
     @DisplayName("Authorize senza autenticazione reindirizza a /login (302)")
     void authorize_unauthenticated_redirectsToLogin() throws Exception {
         String query = "response_type=code"
-                + "&client_id=" + clientId
-                + "&redirect_uri=" + redirectUrlClient
+                + "&client_id=" + oAuth2Properties.getClientId()
+                + "&redirect_uri=" + oAuth2Properties.getRedirectUrlClient()
                 + "&scope=openid profile email"
                 + "&code_challenge=" + generateCodeChallenge(generateCodeVerifier())
                 + "&code_challenge_method=S256";
@@ -36,8 +36,8 @@ class AuthorizationEndpointTest extends AbstractIdpIntegrationMockMvcTest {
     @DisplayName("Authorize con response_type non supportato restituisce 400")
     void authorize_unsupportedResponseType_returnsError() throws Exception {
         String query = "response_type=token"
-                + "&client_id=" + clientId
-                + "&redirect_uri=" + redirectUrlClient;
+                + "&client_id=" + oAuth2Properties.getClientId()
+                + "&redirect_uri=" + oAuth2Properties.getRedirectUrlClient();
 
         mockMvc.perform(get(authorizeUrl(query)).accept(MediaType.TEXT_HTML))
                 .andExpect(status().isBadRequest())
@@ -49,8 +49,8 @@ class AuthorizationEndpointTest extends AbstractIdpIntegrationMockMvcTest {
     @DisplayName("Authorize senza PKCE e non autenticato reindirizza al login (PKCE validato post-login)")
     void authorize_missingPkce_unauthenticated_redirectsToLogin() throws Exception {
         String query = "response_type=code"
-                + "&client_id=" + clientId
-                + "&redirect_uri=" + redirectUrlClient
+                + "&client_id=" + oAuth2Properties.getClientId()
+                + "&redirect_uri=" + oAuth2Properties.getRedirectUrlClient()
                 + "&scope=openid profile email";
 
         mockMvc.perform(get(authorizeUrl(query)).accept(MediaType.TEXT_HTML))
@@ -63,7 +63,7 @@ class AuthorizationEndpointTest extends AbstractIdpIntegrationMockMvcTest {
     @DisplayName("Authorize con redirect_uri non registrato restituisce 400 e non effettua redirect")
     void authorize_unregisteredRedirectUri_returnsBadRequest() throws Exception {
         String query = "response_type=code"
-                + "&client_id=" + clientId
+                + "&client_id=" + oAuth2Properties.getClientId()
                 + "&redirect_uri=http://evil.example.com/callback"
                 + "&scope=openid profile email"
                 + "&code_challenge=" + generateCodeChallenge(generateCodeVerifier())

@@ -22,7 +22,7 @@ class ClientCredentialsTest extends AbstractIdpIntegrationMockMvcTest {
     @DisplayName("Client Credentials Flow restituisce access_token senza claim utente e sub == client_id")
     void clientCredentials_returnsAccessToken() throws Exception {
         MvcResult result = mockMvc.perform(post("/oauth2/token")
-                        .with(httpBasic(clientId, clientSecret))
+                        .with(httpBasic(oAuth2Properties.getClientId(), oAuth2Properties.getClientSecret()))
                         .param("grant_type", "client_credentials")
                         .param("scope", "openid profile email address phone")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED))
@@ -42,7 +42,7 @@ class ClientCredentialsTest extends AbstractIdpIntegrationMockMvcTest {
         String accessToken = (String) tokens.get("access_token");
         SignedJWT signedJWT = SignedJWT.parse(accessToken);
         JWTClaimsSet claims = signedJWT.getJWTClaimsSet();
-        assertThat(claims.getSubject()).isEqualTo(clientId);
+        assertThat(claims.getSubject()).isEqualTo(oAuth2Properties.getClientId());
         assertThat(claims.getClaim("email")).isNull();
         assertThat(claims.getClaim("preferred_username")).isNull();
         assertThat(claims.getClaim("name")).isNull();

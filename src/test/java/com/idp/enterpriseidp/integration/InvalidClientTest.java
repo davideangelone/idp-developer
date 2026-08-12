@@ -23,7 +23,7 @@ class InvalidClientTest extends AbstractIdpIntegrationMockMvcTest {
     @DisplayName("Client ID errato restituisce invalid_client (401)")
     void invalidClientId_returnsError() throws Exception {
         MvcResult result = mockMvc.perform(post("/oauth2/token")
-                        .with(httpBasic("wrong-client", clientSecret))
+                        .with(httpBasic("wrong-client", oAuth2Properties.getClientSecret()))
                         .param("grant_type", "client_credentials")
                         .param("scope", "openid")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
@@ -38,7 +38,7 @@ class InvalidClientTest extends AbstractIdpIntegrationMockMvcTest {
     @DisplayName("Client secret errato restituisce invalid_client (401)")
     void invalidClientSecret_returnsError() throws Exception {
         MvcResult result = mockMvc.perform(post("/oauth2/token")
-                        .with(httpBasic(clientId, "wrong-secret"))
+                        .with(httpBasic(oAuth2Properties.getClientId(), "wrong-secret"))
                         .param("grant_type", "client_credentials")
                         .param("scope", "openid")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)

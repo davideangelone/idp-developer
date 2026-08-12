@@ -1,8 +1,10 @@
 package com.idp.enterpriseidp.config;
 
 import java.util.List;
+import java.util.Set;
 
 import com.idp.enterpriseidp.domain.User;
+import com.idp.enterpriseidp.properties.UserProperties;
 import com.idp.enterpriseidp.service.CustomUserDetailsService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -26,25 +28,38 @@ import static org.mockito.Mockito.when;
 class OAuth2TokenCustomizerTest {
 
     @Mock
-    JwtEncodingContext context;
+    private JwtEncodingContext context;
 
     @Mock
-    Authentication authentication;
+    private Authentication authentication;
 
     @Mock
-    JwtClaimsSet.Builder claimsBuilder;
+    private JwtClaimsSet.Builder claimsBuilder;
 
-    AuthorizationServerConfig config;
+    private AuthorizationServerConfig config;
+
+    private UserProperties userProperties;
 
     @BeforeEach
     void setUp() {
         config = new AuthorizationServerConfig();
+
+        userProperties = new UserProperties();
+        userProperties.setUsername("test");
+        userProperties.setPassword("encoded");
+        userProperties.setEmail("test@example.com");
+        userProperties.setFirstName("Mario");
+        userProperties.setLastName("Rossi");
+        userProperties.setAddress("Via Roma 1");
+        userProperties.setPhoneNumber("+39 333 1234567");
+        userProperties.setRoles(Set.of("USER"));
+        userProperties.setGroups(Set.of("users"));
     }
 
     @Test
     @DisplayName("Aggiunge i claim custom quando il principal e CustomUserDetails")
     void addsCustomClaims_whenPrincipalIsCustomUserDetails() {
-        CustomUserDetailsService.CustomUserDetails customUserDetails = getCustomUserDetails();
+        CustomUserDetailsService.CustomUserDetails customUserDetails = getCustomUserDetails(userProperties);
 
         when(context.getPrincipal()).thenReturn(authentication);
         when(authentication.getPrincipal()).thenReturn(customUserDetails);
@@ -60,32 +75,36 @@ class OAuth2TokenCustomizerTest {
         List<String> keys = keyCaptor.getAllValues();
         assertThat(keys).containsExactlyInAnyOrder(
                 "sub", "name", "given_name", "family_name", "email",
-                "email_verified", "address", "phone_number", "preferred_username"
+                "email_verified", "address", "phone_number", "preferred_username", "roles", "groups"
         );
 
         assertThat(valueCaptor.getAllValues()).containsExactly(
                 10L,
-                "Mario Rossi",
-                "Mario",
-                "Rossi",
-                "test@example.com",
+                userProperties.getFirstName() + " " + userProperties.getLastName(),
+                userProperties.getFirstName(),
+                userProperties.getLastName(),
+                userProperties.getRoles(),
+                userProperties.getGroups(),
+                userProperties.getEmail(),
                 true,
-                "Via Roma 1",
-                "+39 333 1234567",
-                "test"
+                userProperties.getAddress(),
+                userProperties.getPhoneNumber(),
+                userProperties.getUsername()
         );
     }
 
-    private CustomUserDetailsService.CustomUserDetails getCustomUserDetails() {
+    private CustomUserDetailsService.CustomUserDetails getCustomUserDetails(UserProperties userProperties) {
         User user = new User();
         user.setId(10L);
-        user.setUsername("test");
-        user.setEmail("test@example.com");
-        user.setPassword("encoded");
-        user.setFirstName("Mario");
-        user.setLastName("Rossi");
-        user.setAddress("Via Roma 1");
-        user.setPhoneNumber("+39 333 1234567");
+        user.setUsername(userProperties.getUsername());
+        user.setEmail(userProperties.getEmail());
+        user.setPassword(userProperties.getPassword());
+        user.setFirstName(userProperties.getFirstName());
+        user.setLastName(userProperties.getLastName());
+        user.setAddress(userProperties.getAddress());
+        user.setPhoneNumber(userProperties.getPhoneNumber());
+        user.setRoles(userProperties.getRoles());
+        user.setGroups(userProperties.getGroups());
         user.setEnabled(true);
         user.setEmailVerified(true);
 

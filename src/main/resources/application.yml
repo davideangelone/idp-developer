@@ -1,6 +1,10 @@
 spring:
   application:
     name: enterprise-idp
+
+  config:
+    import: classpath:users.yaml
+
   datasource:
     url: jdbc:h2:mem:idp-test;DB_CLOSE_DELAY=-1
     driver-class-name: org.h2.Driver
@@ -10,6 +14,7 @@ spring:
       maximum-pool-size: 10
       minimum-idle: 2
       connection-timeout: 30000
+
   jpa:
     database-platform: org.hibernate.dialect.H2Dialect
     hibernate:
@@ -26,10 +31,6 @@ client:
 app:
   issuer-url: http://localhost:${server.port}
   authorizationConsent: true
-  username1: test
-  password1: password
-  username2: test2
-  password2: password
 
   jwt:
     key-store: classpath:idp-keystore.p12
@@ -39,11 +40,11 @@ app:
     key-password: changeit
 
 oauth2:
-  clientId: oidc-client
-  clientSecret: secret
-  redirectUrlClient: ${client.url}/login/oauth2/code/${oauth2.clientId}
-  redirectUrlTest: https://oauth.pstmn.io/v1/callback
-  postLogoutRedirectUrl: ${client.url}/
+  client-id: oidc-client
+  client-secret: secret
+  redirect-url-client: ${client.url}/login/oauth2/code/${oauth2.client-id}
+  redirect-url-test: https://oauth.pstmn.io/v1/callback
+  post-logout-redirect-url: ${client.url}/
 
 logging:
   level:

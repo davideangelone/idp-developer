@@ -564,7 +564,7 @@ L'obiettivo è verificare il comportamento dell'IdP come Authorization Server/OI
 
 ## Configurazione principale
 
-Le principali proprietà utilizzate dal POC sono:
+Le principali proprietà utilizzate dal POC sono nel file `application.yaml`:
 
 ```yaml
 client:
@@ -573,17 +573,45 @@ client:
 app:
   issuer-url: http://localhost:${server.port}
   authorizationConsent: true
-  username1: test
-  password1: password
-  username2: test2
-  password2: password
+
+  jwt:
+    key-store: classpath:idp-keystore.p12
+    key-store-type: PKCS12
+    key-store-password: changeit
+    key-alias: idp-signing
+    key-password: changeit
 
 oauth2:
-  clientId: oidc-client
-  clientSecret: secret
-  redirectUrlClient: ${client.url}/login/oauth2/code/${oauth2.clientId}
-  redirectUrlTest: https://oauth.pstmn.io/v1/callback
-  postLogoutRedirectUrl: ${client.url}/
+  client-id: oidc-client
+  client-secret: secret
+  redirect-url-client: ${client.url}/login/oauth2/code/${oauth2.client-id}
+  redirect-url-test: https://oauth.pstmn.io/v1/callback
+  post-logout-redirect-url: ${client.url}/
+```
+
+Gli utenti di test sono configurati nel file `users.yaml`:
+```yaml
+app:
+  users:
+    - username: test
+      password: password
+      first-name: Mario
+      last-name: Rossi
+      email: mario.rossi@example.com
+      address: Via Roma 1, Bologna
+      phone-number: "+39 333 1234567"
+      roles: [USER]
+      groups: [users]
+
+    - username: test2
+      password: password
+      first-name: John
+      last-name: Doe
+      email: john.doe@example.com
+      address: 123 Main Street
+      phone-number: "+1 555 1234567"
+      roles: [ADMIN, USER]
+      groups: [administrators, users]
 ```
 
 Questi valori sono destinati esclusivamente all'ambiente locale di sviluppo e testing.

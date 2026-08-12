@@ -12,6 +12,9 @@ import java.util.Set;
 import java.util.UUID;
 
 import com.idp.enterpriseidp.domain.User;
+import com.idp.enterpriseidp.properties.AppProperties;
+import com.idp.enterpriseidp.properties.JwtProperties;
+import com.idp.enterpriseidp.properties.OAuth2Properties;
 import com.idp.enterpriseidp.service.CustomUserDetailsService;
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.RSAKey;
@@ -20,11 +23,9 @@ import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
-import org.springframework.core.io.Resource;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.OAuth2AuthorizationServerConfiguration;
@@ -58,32 +59,12 @@ public class AuthorizationServerConfig {
             OidcScopes.PHONE
     );
 
-    @Value("${app.issuer-url}")
-    private String issuerUrl;
-
-    @Value("${app.authorizationConsent}")
-    private boolean authorizationConsent;
-
-    @Value("${oauth2.clientId}")
-    private String clientId;
-
-    @Value("${oauth2.clientSecret}")
-    private String clientSecret;
-
-    @Value("${oauth2.redirectUrlClient}")
-    private String redirectUrlClient;
-
-    @Value("${oauth2.redirectUrlTest}")
-    private String redirectUrlTest;
-
-    @Value("${oauth2.postLogoutRedirectUrl}")
-    private String postLogoutRedirectUrl;
-
     @Bean
-    public RegisteredClientRepository registeredClientRepository() {
+    public RegisteredClientRepository registeredClientRepository(OAuth2Properties oauth2Properties,
+                                                                 AppProperties appProperties) {
         RegisteredClient registeredClient = RegisteredClient.withId(UUID.randomUUID().toString())
-                .clientId(clientId)
-                .clientSecret("{noop}" + clientSecret)
+                .clientId(oauth2Properties.getClientId())
+                .clientSecret("{noop}" + oauth2Properties.getClientSecret())
                 .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
                 .authorizationGrantTypes(grantTypes ->
                         grantTypes.addAll(List.of(
@@ -92,12 +73,12 @@ public class AuthorizationServerConfig {
                                 AuthorizationGrantType.REFRESH_TOKEN
                         ))
                 )
-                .redirectUri(redirectUrlClient)
-                .redirectUri(redirectUrlTest)
-                .postLogoutRedirectUri(postLogoutRedirectUrl)
+                .redirectUri(oauth2Properties.getRedirectUrlClient())
+                .redirectUri(oauth2Properties.getRedirectUrlTest())
+                .postLogoutRedirectUri(oauth2Properties.getPostLogoutRedirectUrl())
                 .scopes(scopes -> scopes.addAll(DEFAULT_SCOPES))
                 .clientSettings(ClientSettings.builder()
-                        .requireAuthorizationConsent(authorizationConsent)
+                        .requireAuthorizationConsent(appProperties.isAuthorizationConsent())
                         .requireProofKey(true)
                         .build())
                 .tokenSettings(getTokenSettings())
@@ -117,26 +98,22 @@ public class AuthorizationServerConfig {
     }
 
     @Bean
-    public JWKSource<SecurityContext> jwkSource(
-            @Value("${app.jwt.key-store}") Resource keyStoreResource,
-            @Value("${app.jwt.key-store-password}") String keyStorePassword,
-            @Value("${app.jwt.key-store-type}") String keyStoreType,
-            @Value("${app.jwt.key-alias}") String keyAlias,
-            @Value("${app.jwt.key-password}") String keyPassword) throws Exception {
+    public JWKSource<SecurityContext> jwkSource(AppProperties appProperties) throws Exception {
 
-        KeyStore keyStore = KeyStore.getInstance(keyStoreType);
+        JwtProperties jwtProperties = appProperties.getJwt();
+        KeyStore keyStore = KeyStore.getInstance(jwtProperties.getKeyStoreType());
 
-        try (InputStream inputStream = keyStoreResource.getInputStream()) {
-            keyStore.load(inputStream, keyStorePassword.toCharArray());
+        try (InputStream inputStream = jwtProperties.getKeyStore().getInputStream()) {
+            keyStore.load(inputStream, jwtProperties.getKeyStorePassword().toCharArray());
         }
 
-        RSAPrivateKey privateKey = (RSAPrivateKey) keyStore.getKey(keyAlias, keyPassword.toCharArray());
-        Certificate certificate = keyStore.getCertificate(keyAlias);
+        RSAPrivateKey privateKey = (RSAPrivateKey) keyStore.getKey(jwtProperties.getKeyAlias(), jwtProperties.getKeyPassword().toCharArray());
+        Certificate certificate = keyStore.getCertificate(jwtProperties.getKeyAlias());
         RSAPublicKey publicKey = (RSAPublicKey) certificate.getPublicKey();
 
         RSAKey rsaKey = new RSAKey.Builder(publicKey)
                 .privateKey(privateKey)
-                .keyID(keyAlias)
+                .keyID(jwtProperties.getKeyAlias())
                 .build();
 
         return new ImmutableJWKSet<>(
@@ -150,9 +127,9 @@ public class AuthorizationServerConfig {
     }
 
     @Bean
-    public AuthorizationServerSettings authorizationServerSettings() {
+    public AuthorizationServerSettings authorizationServerSettings(AppProperties appProperties) {
         return AuthorizationServerSettings.builder()
-                .issuer(issuerUrl)
+                .issuer(appProperties.getIssuerUrl())
                 .build();
     }
 
@@ -202,6 +179,8 @@ public class AuthorizationServerConfig {
                 context.getClaims().claim("name", user.getFirstName() + " " + user.getLastName());
                 context.getClaims().claim("given_name", user.getFirstName());
                 context.getClaims().claim("family_name", user.getLastName());
+                context.getClaims().claim("roles", user.getRoles());
+                context.getClaims().claim("groups", user.getGroups());
                 context.getClaims().claim("email", user.getEmail());
                 context.getClaims().claim("email_verified", user.isEmailVerified());
                 context.getClaims().claim("address", user.getAddress());

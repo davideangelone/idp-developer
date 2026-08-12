@@ -19,10 +19,10 @@ class InvalidAuthorizationCodeTest extends AbstractIdpIntegrationMockMvcTest {
     @DisplayName("Authorization code inesistente restituisce invalid_grant")
     void nonExistentCode_returnsInvalidGrant() throws Exception {
         MvcResult result = mockMvc.perform(post("/oauth2/token")
-                        .with(httpBasic(clientId, clientSecret))
+                        .with(httpBasic(oAuth2Properties.getClientId(), oAuth2Properties.getClientSecret()))
                         .param("grant_type", "authorization_code")
                         .param("code", "non-existent-code")
-                        .param("redirect_uri", redirectUrlClient)
+                        .param("redirect_uri", oAuth2Properties.getRedirectUrlClient())
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED))
                 .andExpect(status().isBadRequest())
                 .andReturn();
@@ -35,10 +35,10 @@ class InvalidAuthorizationCodeTest extends AbstractIdpIntegrationMockMvcTest {
     @DisplayName("Code verifier errato restituisce invalid_grant")
     void wrongCodeVerifier_returnsInvalidGrant() throws Exception {
         MvcResult result = mockMvc.perform(post("/oauth2/token")
-                        .with(httpBasic(clientId, clientSecret))
+                        .with(httpBasic(oAuth2Properties.getClientId(), oAuth2Properties.getClientSecret()))
                         .param("grant_type", "authorization_code")
                         .param("code", "some-code")
-                        .param("redirect_uri", redirectUrlClient)
+                        .param("redirect_uri", oAuth2Properties.getRedirectUrlClient())
                         .param("code_verifier", "wrong-verifier")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED))
                 .andExpect(status().isBadRequest())

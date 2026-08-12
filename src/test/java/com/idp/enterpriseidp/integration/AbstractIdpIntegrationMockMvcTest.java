@@ -1,16 +1,17 @@
 package com.idp.enterpriseidp.integration;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.web.servlet.MockMvc;
-
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.SecureRandom;
 import java.util.Base64;
+
+import com.idp.enterpriseidp.properties.AppProperties;
+import com.idp.enterpriseidp.properties.OAuth2Properties;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.web.servlet.MockMvc;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -20,26 +21,11 @@ public abstract class AbstractIdpIntegrationMockMvcTest {
     @Autowired
     protected MockMvc mockMvc;
 
-    @Value("${app.issuer-url}")
-    protected String issuerUrl;
+    @Autowired
+    protected AppProperties appProperties;
 
-    @Value("${app.authorizationConsent}")
-    protected boolean authorizationConsent;
-
-    @Value("${oauth2.clientId}")
-    protected String clientId;
-
-    @Value("${oauth2.clientSecret}")
-    protected String clientSecret;
-
-    @Value("${oauth2.redirectUrlClient}")
-    protected String redirectUrlClient;
-
-    @Value("${oauth2.postLogoutRedirectUrl}")
-    protected String postLogoutRedirectUrl;
-
-    @Value("${app.username1}")
-    protected String username1;
+    @Autowired
+    protected OAuth2Properties oAuth2Properties;
 
     protected String generateCodeVerifier() {
         byte[] bytes = new byte[32];

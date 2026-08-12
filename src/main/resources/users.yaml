@@ -1,0 +1,21 @@
+app:
+  users:
+    - username: test
+      password: password
+      first-name: Mario
+      last-name: Rossi
+      email: mario.rossi@example.com
+      address: Via Roma 1, Bologna
+      phone-number: "+39 333 1234567"
+      roles: [USER]
+      groups: [users]
+
+    - username: test2
+      password: password
+      first-name: John
+      last-name: Doe
+      email: john.doe@example.com
+      address: 123 Main Street
+      phone-number: "+1 555 1234567"
+      roles: [ADMIN, USER]
+      groups: [administrators, users]
