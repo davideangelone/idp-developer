@@ -4,6 +4,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.SecureRandom;
 import java.util.Base64;
+import java.util.Map;
 
 import com.idp.enterpriseidp.properties.AppProperties;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +12,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -42,5 +45,9 @@ public abstract class AbstractIdpIntegrationMockMvcTest {
         org.springframework.web.util.UriComponentsBuilder builder =
                 org.springframework.web.util.UriComponentsBuilder.fromUriString(location);
         return builder.build().getQueryParams().getFirst("code");
+    }
+
+    protected Map<String, Object> parseJson(String json) {
+        return new ObjectMapper().readValue(json, new TypeReference<>() {});
     }
 }

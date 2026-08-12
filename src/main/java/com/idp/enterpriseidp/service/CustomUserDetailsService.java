@@ -1,7 +1,6 @@
 package com.idp.enterpriseidp.service;
 
 import java.util.Collection;
-import java.util.List;
 
 import com.idp.enterpriseidp.domain.User;
 import com.idp.enterpriseidp.repository.UserRepository;
@@ -25,7 +24,7 @@ public class CustomUserDetailsService implements UserDetailsService {
 
     @Override
     @Transactional(readOnly = true)
-    public UserDetails loadUserByUsername(@NonNull String username) throws UsernameNotFoundException {
+    public @NonNull UserDetails loadUserByUsername(@NonNull String username) throws UsernameNotFoundException {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
 
@@ -35,8 +34,10 @@ public class CustomUserDetailsService implements UserDetailsService {
     public record CustomUserDetails(User user) implements UserDetails {
 
         @Override
-        public Collection<? extends GrantedAuthority> getAuthorities() {
-            return List.of(new SimpleGrantedAuthority("ROLE_USER"));
+        public @NonNull Collection<? extends GrantedAuthority> getAuthorities() {
+            return user.getRoles().stream()
+                    .map(role -> new SimpleGrantedAuthority("ROLE_" + role))
+                    .toList();
         }
 
         @Override
@@ -45,23 +46,26 @@ public class CustomUserDetailsService implements UserDetailsService {
         }
 
         @Override
-        public String getUsername() {
+        public @NonNull String getUsername() {
             return user.getUsername();
         }
 
         @Override
         public boolean isAccountNonExpired() {
-            return true;
+            // Mantiene il comportamento di default, lasciando il metodo disponibile per future personalizzazioni.
+            return UserDetails.super.isAccountNonExpired();
         }
 
         @Override
         public boolean isAccountNonLocked() {
-            return true;
+            // Mantiene il comportamento di default, lasciando il metodo disponibile per future personalizzazioni.
+            return UserDetails.super.isAccountNonLocked();
         }
 
         @Override
         public boolean isCredentialsNonExpired() {
-            return true;
+            // Mantiene il comportamento di default, lasciando il metodo disponibile per future personalizzazioni.
+            return UserDetails.super.isCredentialsNonExpired();
         }
 
         @Override

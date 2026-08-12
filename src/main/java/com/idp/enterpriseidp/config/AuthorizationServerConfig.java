@@ -90,27 +90,30 @@ public class AuthorizationServerConfig {
     }
 
     @Bean
-    public JWKSource<SecurityContext> jwkSource(AppProperties appProperties) throws Exception {
+    public JWKSource<SecurityContext> jwkSource(AppProperties appProperties) {
 
         JwtProperties jwtProperties = appProperties.getJwt();
-        KeyStore keyStore = KeyStore.getInstance(jwtProperties.getKeyStoreType());
 
-        try (InputStream inputStream = jwtProperties.getKeyStore().getInputStream()) {
-            keyStore.load(inputStream, jwtProperties.getKeyStorePassword().toCharArray());
+        try {
+            KeyStore keyStore = KeyStore.getInstance(jwtProperties.getKeyStoreType());
+
+            try (InputStream inputStream = jwtProperties.getKeyStore().getInputStream()) {
+                keyStore.load(inputStream, jwtProperties.getKeyStorePassword().toCharArray());
+            }
+
+            RSAPrivateKey privateKey = (RSAPrivateKey) keyStore.getKey(jwtProperties.getKeyAlias(), jwtProperties.getKeyPassword().toCharArray());
+            Certificate certificate = keyStore.getCertificate(jwtProperties.getKeyAlias());
+            RSAPublicKey publicKey = (RSAPublicKey) certificate.getPublicKey();
+
+            RSAKey rsaKey = new RSAKey.Builder(publicKey)
+                    .privateKey(privateKey)
+                    .keyID(jwtProperties.getKeyAlias())
+                    .build();
+
+            return new ImmutableJWKSet<>(new JWKSet(rsaKey));
+        } catch (Exception e) {
+            throw new IllegalStateException("Impossibile inizializzare la chiave per la firma dei token JWT", e);
         }
-
-        RSAPrivateKey privateKey = (RSAPrivateKey) keyStore.getKey(jwtProperties.getKeyAlias(), jwtProperties.getKeyPassword().toCharArray());
-        Certificate certificate = keyStore.getCertificate(jwtProperties.getKeyAlias());
-        RSAPublicKey publicKey = (RSAPublicKey) certificate.getPublicKey();
-
-        RSAKey rsaKey = new RSAKey.Builder(publicKey)
-                .privateKey(privateKey)
-                .keyID(jwtProperties.getKeyAlias())
-                .build();
-
-        return new ImmutableJWKSet<>(
-                new JWKSet(rsaKey)
-        );
     }
 
     @Bean

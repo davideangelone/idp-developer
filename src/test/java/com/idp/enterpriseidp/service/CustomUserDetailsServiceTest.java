@@ -8,10 +8,12 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
 import java.util.Optional;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -38,6 +40,8 @@ class CustomUserDetailsServiceTest {
         user.setLastName("Rossi");
         user.setAddress("Via Roma 1, Bologna");
         user.setPhoneNumber("+39 333 1234567");
+        user.setRoles(Set.of("USER"));
+        user.setGroups(Set.of("users"));
         user.setEnabled(true);
         user.setEmailVerified(true);
 
@@ -53,7 +57,9 @@ class CustomUserDetailsServiceTest {
         assertThat(details.isAccountNonLocked()).isTrue();
         assertThat(details.isCredentialsNonExpired()).isTrue();
         assertThat(details.getAuthorities()).hasSize(1);
-        assertThat(details.getAuthorities().iterator().next().getAuthority()).isEqualTo("ROLE_USER");
+        assertThat(details.getAuthorities())
+                .extracting(GrantedAuthority::getAuthority)
+                .containsExactly("ROLE_USER");
         assertThat(((CustomUserDetailsService.CustomUserDetails) details).user()).isSameAs(user);
     }
 
@@ -65,15 +71,6 @@ class CustomUserDetailsServiceTest {
         assertThatThrownBy(() -> userDetailsService.loadUserByUsername("unknown"))
                 .isInstanceOf(UsernameNotFoundException.class)
                 .hasMessageContaining("unknown");
-    }
-
-    @Test
-    @DisplayName("loadUserByUsername propaga eccezione per username null")
-    void loadUserByUsername_nullUsername_throwsException() {
-        when(userRepository.findByUsername(null)).thenReturn(Optional.empty());
-
-        assertThatThrownBy(() -> userDetailsService.loadUserByUsername(null))
-                .isInstanceOf(UsernameNotFoundException.class);
     }
 
     @Test

@@ -1,12 +1,11 @@
 package com.idp.enterpriseidp.integration;
 
-import tools.jackson.databind.ObjectMapper;
+import java.util.Map;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MvcResult;
-
-import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
@@ -16,7 +15,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class InvalidClientTest extends AbstractIdpIntegrationMockMvcTest {
 
     private Map<String, Object> errorBody(MvcResult result) throws Exception {
-        return new ObjectMapper().readValue(result.getResponse().getContentAsString(), Map.class);
+        return parseJson(result.getResponse().getContentAsString());
     }
 
     @Test

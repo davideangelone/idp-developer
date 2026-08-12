@@ -1,15 +1,14 @@
 package com.idp.enterpriseidp.integration;
 
-import tools.jackson.databind.ObjectMapper;
+import java.util.Map;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MvcResult;
 
-import java.util.List;
-import java.util.Map;
-
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.InstanceOfAssertFactories.LIST;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -28,7 +27,7 @@ class ScopeValidationTest extends AbstractIdpIntegrationMockMvcTest {
                 .andExpect(status().isBadRequest())
                 .andReturn();
 
-        Map<String, Object> error = new ObjectMapper().readValue(result.getResponse().getContentAsString(), Map.class);
+        Map<String, Object> error = parseJson(result.getResponse().getContentAsString());
         assertThat(error).containsEntry("error", "invalid_scope");
     }
 
@@ -40,9 +39,11 @@ class ScopeValidationTest extends AbstractIdpIntegrationMockMvcTest {
                 .andExpect(status().isOk())
                 .andReturn();
 
-        Map<String, Object> discovery = new ObjectMapper().readValue(discoveryResult.getResponse().getContentAsString(), Map.class);
-        List<String> supportedScopes = (List<String>) discovery.get("scopes_supported");
-
-        assertThat(supportedScopes).containsExactlyInAnyOrder("openid", "profile", "email", "address", "phone");
+        Map<String, Object> discovery = parseJson(discoveryResult.getResponse().getContentAsString());
+        assertThat(discovery.get("scopes_supported"))
+                .asInstanceOf(LIST)
+                .containsExactlyInAnyOrder(
+                        "openid", "profile", "email", "address", "phone"
+                );
     }
 }

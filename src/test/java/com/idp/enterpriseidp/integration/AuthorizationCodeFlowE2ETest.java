@@ -32,7 +32,6 @@ import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
-import tools.jackson.databind.ObjectMapper;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -208,7 +207,7 @@ class AuthorizationCodeFlowE2ETest extends AbstractIdpIntegrationMockMvcTest {
         String refreshedJson = postToken("grant_type=refresh_token&refresh_token=" + refreshToken);
         Map<String, Object> refreshed = parseJson(refreshedJson);
         assertThat(refreshed).containsKey("access_token")
-                             .containsEntry("token_type", "Bearer");
+                .containsEntry("token_type", "Bearer");
         String newAccessToken = (String) refreshed.get("access_token");
         assertThat(newAccessToken).isNotEqualTo(accessToken);
 
@@ -425,11 +424,6 @@ class AuthorizationCodeFlowE2ETest extends AbstractIdpIntegrationMockMvcTest {
 
     private URI resolve(String location) {
         return location.startsWith("http") ? URI.create(location) : URI.create(baseUrl + location);
-    }
-
-    private Map<String, Object> parseJson(String json) {
-        var mapper = new ObjectMapper();
-        return mapper.readValue(json, Map.class);
     }
 
     private String extractParam(String url, String name) {

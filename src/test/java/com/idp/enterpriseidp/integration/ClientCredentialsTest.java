@@ -1,15 +1,14 @@
 package com.idp.enterpriseidp.integration;
 
+import java.util.Arrays;
+import java.util.Map;
+
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
-import tools.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MvcResult;
-
-import java.util.Arrays;
-import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
@@ -29,7 +28,7 @@ class ClientCredentialsTest extends AbstractIdpIntegrationMockMvcTest {
                 .andExpect(status().isOk())
                 .andReturn();
 
-        Map<String, Object> tokens = new ObjectMapper().readValue(result.getResponse().getContentAsString(), Map.class);
+        Map<String, Object> tokens = parseJson(result.getResponse().getContentAsString());
         assertThat(tokens)
                 .containsKey("access_token")
                 .containsEntry("token_type", "Bearer");
