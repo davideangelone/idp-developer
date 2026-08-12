@@ -5,17 +5,12 @@ import java.security.KeyStore;
 import java.security.cert.Certificate;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
-import java.time.Duration;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
-import com.idp.enterpriseidp.domain.User;
 import com.idp.enterpriseidp.properties.AppProperties;
 import com.idp.enterpriseidp.properties.JwtProperties;
-import com.idp.enterpriseidp.properties.OAuth2Properties;
-import com.idp.enterpriseidp.service.CustomUserDetailsService;
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
@@ -39,8 +34,6 @@ import org.springframework.security.oauth2.server.authorization.client.Registere
 import org.springframework.security.oauth2.server.authorization.settings.AuthorizationServerSettings;
 import org.springframework.security.oauth2.server.authorization.settings.ClientSettings;
 import org.springframework.security.oauth2.server.authorization.settings.TokenSettings;
-import org.springframework.security.oauth2.server.authorization.token.JwtEncodingContext;
-import org.springframework.security.oauth2.server.authorization.token.OAuth2TokenCustomizer;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.security.web.util.matcher.MediaTypeRequestMatcher;
@@ -60,11 +53,10 @@ public class AuthorizationServerConfig {
     );
 
     @Bean
-    public RegisteredClientRepository registeredClientRepository(OAuth2Properties oauth2Properties,
-                                                                 AppProperties appProperties) {
+    public RegisteredClientRepository registeredClientRepository(AppProperties appProperties) {
         RegisteredClient registeredClient = RegisteredClient.withId(UUID.randomUUID().toString())
-                .clientId(oauth2Properties.getClientId())
-                .clientSecret("{noop}" + oauth2Properties.getClientSecret())
+                .clientId(appProperties.getOauth2().getClientId())
+                .clientSecret("{noop}" + appProperties.getOauth2().getClientSecret())
                 .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
                 .authorizationGrantTypes(grantTypes ->
                         grantTypes.addAll(List.of(
@@ -73,27 +65,27 @@ public class AuthorizationServerConfig {
                                 AuthorizationGrantType.REFRESH_TOKEN
                         ))
                 )
-                .redirectUri(oauth2Properties.getRedirectUrlClient())
-                .redirectUri(oauth2Properties.getRedirectUrlTest())
-                .postLogoutRedirectUri(oauth2Properties.getPostLogoutRedirectUrl())
+                .redirectUri(appProperties.getOauth2().getRedirectUrlClient())
+                .redirectUri(appProperties.getOauth2().getRedirectUrlTest())
+                .postLogoutRedirectUri(appProperties.getOauth2().getPostLogoutRedirectUrl())
                 .scopes(scopes -> scopes.addAll(DEFAULT_SCOPES))
                 .clientSettings(ClientSettings.builder()
-                        .requireAuthorizationConsent(appProperties.isAuthorizationConsent())
+                        .requireAuthorizationConsent(appProperties.getAuthorizationServer().isAuthorizationConsent())
                         .requireProofKey(true)
                         .build())
-                .tokenSettings(getTokenSettings())
+                .tokenSettings(getTokenSettings(appProperties))
                 .build();
 
         logger.info("Registered client '{}' scopes: {}", registeredClient.getClientId(), registeredClient.getScopes());
         return new InMemoryRegisteredClientRepository(registeredClient);
     }
 
-    private TokenSettings getTokenSettings() {
+    private TokenSettings getTokenSettings(AppProperties appProperties) {
         return TokenSettings.builder()
-                .accessTokenTimeToLive(Duration.ofMinutes(5))
-                .refreshTokenTimeToLive(Duration.ofDays(30))
-                .authorizationCodeTimeToLive(Duration.ofMinutes(5))
-                .reuseRefreshTokens(false)
+                .accessTokenTimeToLive(appProperties.getAuthorizationServer().getAccessTokenTtl())
+                .refreshTokenTimeToLive(appProperties.getAuthorizationServer().getRefreshTokenTtl())
+                .authorizationCodeTimeToLive(appProperties.getAuthorizationServer().getAuthorizationCodeTtl())
+                .reuseRefreshTokens(appProperties.getAuthorizationServer().isReuseRefreshTokens())
                 .build();
     }
 
@@ -129,7 +121,7 @@ public class AuthorizationServerConfig {
     @Bean
     public AuthorizationServerSettings authorizationServerSettings(AppProperties appProperties) {
         return AuthorizationServerSettings.builder()
-                .issuer(appProperties.getIssuerUrl())
+                .issuer(appProperties.getAuthorizationServer().getIssuerUrl())
                 .build();
     }
 
@@ -163,42 +155,5 @@ public class AuthorizationServerConfig {
                 );
 
         return http.build();
-    }
-
-    @Bean
-    public OAuth2TokenCustomizer<JwtEncodingContext> tokenCustomizer() {
-        return context -> {
-            var principal = context.getPrincipal();
-            if (principal == null || principal.getPrincipal() == null) {
-                return;
-            }
-
-            Object userDetails = principal.getPrincipal();
-            if (userDetails instanceof CustomUserDetailsService.CustomUserDetails(User user)) {
-                context.getClaims().claim("sub", user.getId());
-                context.getClaims().claim("name", user.getFirstName() + " " + user.getLastName());
-                context.getClaims().claim("given_name", user.getFirstName());
-                context.getClaims().claim("family_name", user.getLastName());
-                context.getClaims().claim("roles", user.getRoles());
-                context.getClaims().claim("groups", user.getGroups());
-                context.getClaims().claim("email", user.getEmail());
-                context.getClaims().claim("email_verified", user.isEmailVerified());
-                context.getClaims().claim("address", user.getAddress());
-                context.getClaims().claim("phone_number", user.getPhoneNumber());
-                context.getClaims().claim("preferred_username", user.getUsername());
-            }
-
-            if (null != principal.getName()) {
-                logger.info(
-                        "Generating token: user={}, tokenType={}, clientId={}, grantType={}, scopes={}, claims={}",
-                        principal.getName(),
-                        context.getTokenType().getValue(),
-                        context.getRegisteredClient().getClientId(),
-                        Optional.ofNullable(context.getAuthorizationGrantType()).map(AuthorizationGrantType::getValue).orElse(null),
-                        context.getAuthorizedScopes(),
-                        context.getClaims().build().getClaims()
-                );
-            }
-        };
     }
 }

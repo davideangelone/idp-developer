@@ -1,4 +1,4 @@
-package com.idp.enterpriseidp.config;
+package com.idp.enterpriseidp.security;
 
 import com.idp.enterpriseidp.service.CustomUserDetailsService;
 import org.springframework.context.annotation.Bean;

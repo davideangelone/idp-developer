@@ -567,12 +567,14 @@ L'obiettivo è verificare il comportamento dell'IdP come Authorization Server/OI
 Le principali proprietà utilizzate dal POC sono nel file `application.yaml`:
 
 ```yaml
-client:
-  url: http://localhost:8080
-
 app:
-  issuer-url: http://localhost:${server.port}
-  authorizationConsent: true
+  authorization-server:
+    issuer-url: http://localhost:${server.port}
+    authorization-consent: true
+    access-token-ttl: 5m
+    refresh-token-ttl: 30d
+    authorization-code-ttl: 5m
+    reuse-refresh-tokens: false
 
   jwt:
     key-store: classpath:idp-keystore.p12
@@ -581,12 +583,13 @@ app:
     key-alias: idp-signing
     key-password: changeit
 
-oauth2:
-  client-id: oidc-client
-  client-secret: secret
-  redirect-url-client: ${client.url}/login/oauth2/code/${oauth2.client-id}
-  redirect-url-test: https://oauth.pstmn.io/v1/callback
-  post-logout-redirect-url: ${client.url}/
+  oauth2:
+    client-url: http://localhost:8080
+    client-id: oidc-client
+    client-secret: secret
+    redirect-url-client: ${app.oauth2.client-url}/login/oauth2/code/${app.oauth2.client-id}
+    redirect-url-test: https://oauth.pstmn.io/v1/callback
+    post-logout-redirect-url: ${app.oauth2.client-url}/
 ```
 
 Gli utenti di test sono configurati nel file `users.yaml`:

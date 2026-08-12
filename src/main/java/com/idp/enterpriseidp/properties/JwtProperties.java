@@ -1,7 +1,6 @@
 package com.idp.enterpriseidp.properties;
 
 import lombok.Data;
-import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.core.io.Resource;
 
 @Data

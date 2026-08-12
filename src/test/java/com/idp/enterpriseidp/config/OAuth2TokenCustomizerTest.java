@@ -5,6 +5,7 @@ import java.util.Set;
 
 import com.idp.enterpriseidp.domain.User;
 import com.idp.enterpriseidp.properties.UserProperties;
+import com.idp.enterpriseidp.security.UserJwtTokenCustomizer;
 import com.idp.enterpriseidp.service.CustomUserDetailsService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -36,13 +37,13 @@ class OAuth2TokenCustomizerTest {
     @Mock
     private JwtClaimsSet.Builder claimsBuilder;
 
-    private AuthorizationServerConfig config;
+    private UserJwtTokenCustomizer userJwtTokenCustomizer;
 
     private UserProperties userProperties;
 
     @BeforeEach
     void setUp() {
-        config = new AuthorizationServerConfig();
+        userJwtTokenCustomizer = new UserJwtTokenCustomizer();
 
         userProperties = new UserProperties();
         userProperties.setUsername("test");
@@ -66,7 +67,7 @@ class OAuth2TokenCustomizerTest {
         when(context.getClaims()).thenReturn(claimsBuilder);
         when(claimsBuilder.claim(any(String.class), any())).thenReturn(claimsBuilder);
 
-        config.tokenCustomizer().customize(context);
+        userJwtTokenCustomizer.customize(context);
 
         ArgumentCaptor<String> keyCaptor = ArgumentCaptor.forClass(String.class);
         ArgumentCaptor<Object> valueCaptor = ArgumentCaptor.forClass(Object.class);
@@ -116,7 +117,7 @@ class OAuth2TokenCustomizerTest {
     void doesNothing_whenPrincipalIsNull() {
         when(context.getPrincipal()).thenReturn(null);
 
-        config.tokenCustomizer().customize(context);
+        userJwtTokenCustomizer.customize(context);
 
         verify(context, never()).getClaims();
     }
@@ -127,7 +128,7 @@ class OAuth2TokenCustomizerTest {
         when(context.getPrincipal()).thenReturn(authentication);
         when(authentication.getPrincipal()).thenReturn(null);
 
-        config.tokenCustomizer().customize(context);
+        userJwtTokenCustomizer.customize(context);
 
         verify(context, never()).getClaims();
     }
@@ -138,7 +139,7 @@ class OAuth2TokenCustomizerTest {
         when(context.getPrincipal()).thenReturn(authentication);
         when(authentication.getPrincipal()).thenReturn("some-other-principal");
 
-        config.tokenCustomizer().customize(context);
+        userJwtTokenCustomizer.customize(context);
 
         verify(context, never()).getClaims();
     }

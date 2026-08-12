@@ -28,7 +28,7 @@ class OidcDiscoveryTest extends AbstractIdpIntegrationMockMvcTest {
         Map<String, Object> config = objectMapper.readValue(result.getResponse().getContentAsString(), Map.class);
 
         assertThat(config)
-                .containsEntry("issuer", appProperties.getIssuerUrl())
+                .containsEntry("issuer", appProperties.getAuthorizationServer().getIssuerUrl())
                 .containsKeys(
                     "authorization_endpoint",
                     "token_endpoint",
@@ -41,13 +41,13 @@ class OidcDiscoveryTest extends AbstractIdpIntegrationMockMvcTest {
         String jwksUri = (String) config.get("jwks_uri");
         String endSessionEndpoint = (String) config.get("end_session_endpoint");
 
-        assertThat(authorizationEndpoint).startsWith(appProperties.getIssuerUrl());
-        assertThat(tokenEndpoint).startsWith(appProperties.getIssuerUrl());
-        assertThat(jwksUri).startsWith(appProperties.getIssuerUrl());
-        assertThat(endSessionEndpoint).startsWith(appProperties.getIssuerUrl());
+        assertThat(authorizationEndpoint).startsWith(appProperties.getAuthorizationServer().getIssuerUrl());
+        assertThat(tokenEndpoint).startsWith(appProperties.getAuthorizationServer().getIssuerUrl());
+        assertThat(jwksUri).startsWith(appProperties.getAuthorizationServer().getIssuerUrl());
+        assertThat(endSessionEndpoint).startsWith(appProperties.getAuthorizationServer().getIssuerUrl());
 
         if (config.containsKey("userinfo_endpoint")) {
-            assertThat((String) config.get("userinfo_endpoint")).startsWith(appProperties.getIssuerUrl());
+            assertThat((String) config.get("userinfo_endpoint")).startsWith(appProperties.getAuthorizationServer().getIssuerUrl());
         }
 
         Object scopesSupported = config.get("scopes_supported");

@@ -6,7 +6,6 @@ import java.security.SecureRandom;
 import java.util.Base64;
 
 import com.idp.enterpriseidp.properties.AppProperties;
-import com.idp.enterpriseidp.properties.OAuth2Properties;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
@@ -23,9 +22,6 @@ public abstract class AbstractIdpIntegrationMockMvcTest {
 
     @Autowired
     protected AppProperties appProperties;
-
-    @Autowired
-    protected OAuth2Properties oAuth2Properties;
 
     protected String generateCodeVerifier() {
         byte[] bytes = new byte[32];

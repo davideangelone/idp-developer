@@ -14,8 +14,8 @@ class LogoutTest extends AbstractIdpIntegrationMockMvcTest {
     void logout_withInvalidHint_returnsBadRequest() throws Exception {
         mockMvc.perform(post("/connect/logout")
                         .param("id_token_hint", "invalid-token")
-                        .param("client_id", oAuth2Properties.getClientId())
-                        .param("post_logout_redirect_uri", oAuth2Properties.getPostLogoutRedirectUrl())
+                        .param("client_id", appProperties.getOauth2().getClientId())
+                        .param("post_logout_redirect_uri", appProperties.getOauth2().getPostLogoutRedirectUrl())
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED))
                 .andExpect(status().isBadRequest())
                 .andReturn();
