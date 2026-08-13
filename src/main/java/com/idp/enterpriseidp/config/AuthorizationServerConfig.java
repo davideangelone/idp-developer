@@ -6,7 +6,6 @@ import java.security.cert.Certificate;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 
 import com.idp.enterpriseidp.properties.AppProperties;
@@ -21,12 +20,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
+import org.springframework.http.MediaType;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.OAuth2AuthorizationServerConfiguration;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
-import org.springframework.security.oauth2.core.oidc.OidcScopes;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.server.authorization.client.InMemoryRegisteredClientRepository;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
@@ -44,14 +43,6 @@ public class AuthorizationServerConfig {
 
     private static final Logger logger = LoggerFactory.getLogger(AuthorizationServerConfig.class);
 
-    private static final Set<String> DEFAULT_SCOPES = Set.of(
-            OidcScopes.OPENID,
-            OidcScopes.PROFILE,
-            OidcScopes.EMAIL,
-            OidcScopes.ADDRESS,
-            OidcScopes.PHONE
-    );
-
     @Bean
     public RegisteredClientRepository registeredClientRepository(AppProperties appProperties) {
         RegisteredClient registeredClient = RegisteredClient.withId(UUID.randomUUID().toString())
@@ -65,10 +56,11 @@ public class AuthorizationServerConfig {
                                 AuthorizationGrantType.REFRESH_TOKEN
                         ))
                 )
-                .redirectUri(appProperties.getOauth2().getRedirectUrlClient())
-                .redirectUri(appProperties.getOauth2().getRedirectUrlTest())
-                .postLogoutRedirectUri(appProperties.getOauth2().getPostLogoutRedirectUrl())
-                .scopes(scopes -> scopes.addAll(DEFAULT_SCOPES))
+                .redirectUris(redirectUris ->
+                        redirectUris.addAll(appProperties.getOauth2().getRedirectUris()))
+                .postLogoutRedirectUris(postLogoutRedirectUris ->
+                        postLogoutRedirectUris.addAll(appProperties.getOauth2().getPostLogoutRedirectUris()))
+                .scopes(scopes -> scopes.addAll(appProperties.getOauth2().getScopes()))
                 .clientSettings(ClientSettings.builder()
                         .requireAuthorizationConsent(appProperties.getAuthorizationServer().isAuthorizationConsent())
                         .requireProofKey(true)
@@ -130,7 +122,7 @@ public class AuthorizationServerConfig {
 
     @Bean
     @Order(1)
-    public SecurityFilterChain authorizationServerSecurityFilterChain(HttpSecurity http) {
+    public SecurityFilterChain authorizationServerSecurityFilterChain(HttpSecurity http, AppProperties appProperties) {
         http
                 .oauth2AuthorizationServer(authorizationServer -> {
                     http.securityMatcher(authorizationServer.getEndpointsMatcher());
@@ -140,20 +132,19 @@ public class AuthorizationServerConfig {
                                             providerConfiguration.providerConfigurationCustomizer(builder ->
                                                     builder.scopes(scopes -> {
                                                                 scopes.clear();
-                                                                scopes.addAll(DEFAULT_SCOPES);
+                                                                scopes.addAll(appProperties.getAuthorizationServer().getSupportedScopes());
                                                             }
                                                     ))
                                     )
                             );
                 })
                 .authorizeHttpRequests(authorize ->
-                        authorize
-                                .anyRequest().authenticated()
+                        authorize.anyRequest().authenticated()
                 )
                 .exceptionHandling(exceptions -> exceptions
                         .defaultAuthenticationEntryPointFor(
                                 new LoginUrlAuthenticationEntryPoint("/login"),
-                                new MediaTypeRequestMatcher(org.springframework.http.MediaType.TEXT_HTML)
+                                new MediaTypeRequestMatcher(MediaType.TEXT_HTML)
                         )
                 );
 

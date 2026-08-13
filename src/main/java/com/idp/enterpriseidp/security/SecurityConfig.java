@@ -45,8 +45,14 @@ public class SecurityConfig {
     @Order(2)
     public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) {
         http
+                .csrf(csrf -> csrf
+                        .ignoringRequestMatchers(
+                                request -> "uidl".equals(request.getParameter("v-r"))
+                        )
+                )
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/login", "/error").permitAll()
+                        .requestMatchers("/", "/login", "/error").permitAll()
+                        .requestMatchers("/VAADIN/**", "/aura/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .formLogin(Customizer.withDefaults())

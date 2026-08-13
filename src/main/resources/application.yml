@@ -29,6 +29,7 @@ logging:
   level:
     root: INFO
     com.idp: INFO
+    org.atmosphere: ERROR
 
 app:
   authorization-server:
@@ -38,6 +39,7 @@ app:
     refresh-token-ttl: 30d
     authorization-code-ttl: 5m
     reuse-refresh-tokens: false
+    supported-scopes: [openid, profile, email, address, phone]
 
   jwt:
     key-store: classpath:idp-keystore.p12
@@ -50,6 +52,9 @@ app:
     client-url: http://localhost:8080
     client-id: oidc-client
     client-secret: secret
-    redirect-url-client: ${app.oauth2.client-url}/login/oauth2/code/${app.oauth2.client-id}
-    redirect-url-test: https://oauth.pstmn.io/v1/callback
-    post-logout-redirect-url: ${app.oauth2.client-url}/
+    redirect-uris:
+      - ${app.oauth2.client-url}/login/oauth2/code/${app.oauth2.client-id}
+      - https://oauth.pstmn.io/v1/callback
+    post-logout-redirect-uris:
+      - ${app.oauth2.client-url}/
+    scopes: [openid, profile, email, address, phone]
