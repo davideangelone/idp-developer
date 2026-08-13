@@ -25,16 +25,14 @@ public class ClientView extends VerticalLayout {
 
         TextArea redirectUris = new TextArea("Redirect URIs");
         redirectUris.setValue(
-                String.join(System.lineSeparator(),
-                        appProperties.getOauth2().getRedirectUris())
+                String.join(System.lineSeparator(), appProperties.getOauth2Client().getRedirectUris())
         );
         redirectUris.setReadOnly(true);
         redirectUris.setWidthFull();
 
         TextArea postLogoutRedirectUris = new TextArea("Post Logout Redirect URIs");
         postLogoutRedirectUris.setValue(
-                String.join(System.lineSeparator(),
-                        appProperties.getOauth2().getPostLogoutRedirectUris())
+                String.join(System.lineSeparator(), appProperties.getOauth2Client().getPostLogoutRedirectUris())
         );
         postLogoutRedirectUris.setReadOnly(true);
         postLogoutRedirectUris.setWidthFull();
@@ -42,22 +40,26 @@ public class ClientView extends VerticalLayout {
         oauth2.add(
                 readOnlyField(
                         "Client URL",
-                        appProperties.getOauth2().getClientUrl()
+                        appProperties.getOauth2Client().getClientUrl()
                 ),
                 new Span(),
                 readOnlyField(
                         "Client ID",
-                        appProperties.getOauth2().getClientId()
+                        appProperties.getOauth2Client().getClientId()
                 ),
                 readOnlyField(
                         "Client Secret",
-                        appProperties.getOauth2().getClientSecret()
+                        appProperties.getOauth2Client().getClientSecret()
                 ),
                 redirectUris,
                 postLogoutRedirectUris,
                 readOnlyField(
                         "Scopes",
-                        String.join(", ", appProperties.getOauth2().getScopes())
+                        String.join(", ", appProperties.getOauth2Client().getScopes())
+                ),
+                readOnlyField(
+                        "Authorization Grant Types",
+                        String.join(", ", appProperties.getOauth2Client().getAuthorizationGrantTypes())
                 )
         );
 

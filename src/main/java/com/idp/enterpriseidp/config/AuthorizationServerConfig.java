@@ -5,7 +5,6 @@ import java.security.KeyStore;
 import java.security.cert.Certificate;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
-import java.util.List;
 import java.util.UUID;
 
 import com.idp.enterpriseidp.properties.AppProperties;
@@ -46,21 +45,19 @@ public class AuthorizationServerConfig {
     @Bean
     public RegisteredClientRepository registeredClientRepository(AppProperties appProperties) {
         RegisteredClient registeredClient = RegisteredClient.withId(UUID.randomUUID().toString())
-                .clientId(appProperties.getOauth2().getClientId())
-                .clientSecret("{noop}" + appProperties.getOauth2().getClientSecret())
+                .clientId(appProperties.getOauth2Client().getClientId())
+                .clientSecret("{noop}" + appProperties.getOauth2Client().getClientSecret())
                 .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
                 .authorizationGrantTypes(grantTypes ->
-                        grantTypes.addAll(List.of(
-                                AuthorizationGrantType.CLIENT_CREDENTIALS,
-                                AuthorizationGrantType.AUTHORIZATION_CODE,
-                                AuthorizationGrantType.REFRESH_TOKEN
-                        ))
+                        grantTypes.addAll(appProperties.getOauth2Client().getAuthorizationGrantTypes().stream()
+                                .map(AuthorizationGrantType::new)
+                                .toList())
                 )
                 .redirectUris(redirectUris ->
-                        redirectUris.addAll(appProperties.getOauth2().getRedirectUris()))
+                        redirectUris.addAll(appProperties.getOauth2Client().getRedirectUris()))
                 .postLogoutRedirectUris(postLogoutRedirectUris ->
-                        postLogoutRedirectUris.addAll(appProperties.getOauth2().getPostLogoutRedirectUris()))
-                .scopes(scopes -> scopes.addAll(appProperties.getOauth2().getScopes()))
+                        postLogoutRedirectUris.addAll(appProperties.getOauth2Client().getPostLogoutRedirectUris()))
+                .scopes(scopes -> scopes.addAll(appProperties.getOauth2Client().getScopes()))
                 .clientSettings(ClientSettings.builder()
                         .requireAuthorizationConsent(appProperties.getAuthorizationServer().isAuthorizationConsent())
                         .requireProofKey(true)

@@ -58,7 +58,7 @@ public class MainLayout extends AppLayout {
 
         navigation.addItem(
                 new SideNavItem(
-                        "OAuth Client",
+                        "OAuth2 Client",
                         ClientView.class,
                         new Icon(VaadinIcon.KEY))
         );

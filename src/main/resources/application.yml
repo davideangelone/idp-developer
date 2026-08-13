@@ -48,13 +48,14 @@ app:
     key-alias: idp-signing
     key-password: changeit
 
-  oauth2:
+  oauth2-client:
     client-url: http://localhost:8080
     client-id: oidc-client
     client-secret: secret
     redirect-uris:
-      - ${app.oauth2.client-url}/login/oauth2/code/${app.oauth2.client-id}
+      - ${app.oauth2-client.client-url}/login/oauth2/code/${app.oauth2-client.client-id}
       - https://oauth.pstmn.io/v1/callback
     post-logout-redirect-uris:
-      - ${app.oauth2.client-url}/
+      - ${app.oauth2-client.client-url}/
     scopes: [openid, profile, email, address, phone]
+    authorization-grant-types: [authorization_code, refresh_token, client_credentials]

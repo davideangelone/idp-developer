@@ -10,6 +10,6 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public class AppProperties {
     private AuthorizationServerProperties authorizationServer;
     private JwtProperties jwt;
-    private OAuth2Properties oauth2;
+    private OAuth2ClientProperties oauth2Client;
     private List<UserProperties> users;
 }
