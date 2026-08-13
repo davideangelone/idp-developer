@@ -1,5 +1,6 @@
 package com.idp.enterpriseidp.security;
 
+import com.idp.enterpriseidp.properties.AppProperties;
 import com.idp.enterpriseidp.service.CustomUserDetailsService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -43,7 +44,7 @@ public class SecurityConfig {
 
     @Bean
     @Order(2)
-    public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) {
+    public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http, AppProperties appProperties) {
         http
                 .csrf(csrf -> csrf
                         .ignoringRequestMatchers(
@@ -54,9 +55,18 @@ public class SecurityConfig {
                         .requestMatchers("/", "/login", "/error").permitAll()
                         .requestMatchers("/VAADIN/**", "/aura/**").permitAll()
                         .anyRequest().authenticated()
-                )
-                .formLogin(Customizer.withDefaults())
-                .authenticationProvider(daoAuthenticationProvider());
+                );
+
+                if (appProperties.getAuthorizationServer().isCustomLoginPage()) {
+                    http.formLogin(form -> form
+                            .loginPage("/login")
+                            .permitAll()
+                    );
+                } else {
+                    http.formLogin(Customizer.withDefaults());
+                }
+
+                http.authenticationProvider(daoAuthenticationProvider());
 
         return http.build();
     }

@@ -575,6 +575,8 @@ app:
     refresh-token-ttl: 30d
     authorization-code-ttl: 5m
     reuse-refresh-tokens: false
+    supported-scopes: [openid, profile, email, address, phone]
+    custom-login-page: true
 
   jwt:
     key-store: classpath:idp-keystore.p12
@@ -583,13 +585,17 @@ app:
     key-alias: idp-signing
     key-password: changeit
 
-  oauth2:
+  oauth2-client:
     client-url: http://localhost:8080
     client-id: oidc-client
     client-secret: secret
-    redirect-url-client: ${app.oauth2.client-url}/login/oauth2/code/${app.oauth2.client-id}
-    redirect-url-test: https://oauth.pstmn.io/v1/callback
-    post-logout-redirect-url: ${app.oauth2.client-url}/
+    redirect-uris:
+      - ${app.oauth2-client.client-url}/login/oauth2/code/${app.oauth2-client.client-id}
+      - https://oauth.pstmn.io/v1/callback
+    post-logout-redirect-uris:
+      - ${app.oauth2-client.client-url}/
+    scopes: [openid, profile, email, address, phone]
+    authorization-grant-types: [authorization_code, refresh_token, client_credentials]
 ```
 
 Gli utenti di test sono configurati nel file `users.yaml`:

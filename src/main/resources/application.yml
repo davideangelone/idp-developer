@@ -40,6 +40,7 @@ app:
     authorization-code-ttl: 5m
     reuse-refresh-tokens: false
     supported-scopes: [openid, profile, email, address, phone]
+    custom-login-page: true
 
   jwt:
     key-store: classpath:idp-keystore.p12

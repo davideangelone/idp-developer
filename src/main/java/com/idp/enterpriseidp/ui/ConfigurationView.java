@@ -48,11 +48,14 @@ public class ConfigurationView extends VerticalLayout {
                 readOnlyField(
                         "Reuse Refresh Tokens",
                         String.valueOf(appProperties.getAuthorizationServer().isReuseRefreshTokens())
-                )
-                ,
+                ),
                 readOnlyField(
                         "Supported scopes",
                         String.join(", ", appProperties.getAuthorizationServer().getSupportedScopes())
+                ),
+                readOnlyField(
+                        "Login page",
+                        appProperties.getAuthorizationServer().isCustomLoginPage() ? "Custom" : "Default"
                 )
         );
 
