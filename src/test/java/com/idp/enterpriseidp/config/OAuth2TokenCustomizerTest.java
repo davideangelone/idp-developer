@@ -22,6 +22,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -65,6 +66,7 @@ class OAuth2TokenCustomizerTest {
         when(context.getPrincipal()).thenReturn(authentication);
         when(authentication.getPrincipal()).thenReturn(customUserDetails);
         when(context.getClaims()).thenReturn(claimsBuilder);
+        when(context.getAuthorizedScopes()).thenReturn(Set.of("profile", "email", "address", "phone"));
         when(claimsBuilder.claim(any(String.class), any())).thenReturn(claimsBuilder);
 
         userJwtTokenCustomizer.customize(context);
@@ -72,15 +74,15 @@ class OAuth2TokenCustomizerTest {
         ArgumentCaptor<String> keyCaptor = ArgumentCaptor.forClass(String.class);
         ArgumentCaptor<Object> valueCaptor = ArgumentCaptor.forClass(Object.class);
         verify(claimsBuilder, atLeast(1)).claim(keyCaptor.capture(), valueCaptor.capture());
+        verify(claimsBuilder, times(1)).subject(any(String.class));
 
         List<String> keys = keyCaptor.getAllValues();
         assertThat(keys).containsExactlyInAnyOrder(
-                "sub", "name", "given_name", "family_name", "email",
+                "name", "given_name", "family_name", "email",
                 "email_verified", "address", "phone_number", "preferred_username", "roles", "groups"
         );
 
-        assertThat(valueCaptor.getAllValues()).containsExactly(
-                10L,
+        assertThat(valueCaptor.getAllValues()).containsExactlyInAnyOrder(
                 userProperties.getFirstName() + " " + userProperties.getLastName(),
                 userProperties.getFirstName(),
                 userProperties.getLastName(),

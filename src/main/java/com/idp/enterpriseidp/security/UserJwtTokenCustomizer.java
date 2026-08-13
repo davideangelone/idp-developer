@@ -43,17 +43,46 @@ public class UserJwtTokenCustomizer implements OAuth2TokenCustomizer<JwtEncoding
         }
     }
 
-    private void addUserClaims(JwtEncodingContext context, User user) {
-        context.getClaims().claim("sub", user.getId());
-        context.getClaims().claim("name", user.getFirstName() + " " + user.getLastName());
-        context.getClaims().claim("given_name", user.getFirstName());
-        context.getClaims().claim("family_name", user.getLastName());
+    private void addUserClaims(
+            JwtEncodingContext context,
+            User user) {
+
+        context.getClaims().subject(String.valueOf(user.getId()));
         context.getClaims().claim("roles", user.getRoles());
         context.getClaims().claim("groups", user.getGroups());
-        context.getClaims().claim("email", user.getEmail());
-        context.getClaims().claim("email_verified", user.isEmailVerified());
+
+        for (String scope : context.getAuthorizedScopes()) {
+            switch (scope) {
+                case "profile" -> addProfileClaims(context, user);
+                case "email" -> addEmailClaims(context, user);
+                case "address" -> addAddressClaims(context, user);
+                case "phone" -> addPhoneClaims(context, user);
+                default -> {
+                    // Nessun claim custom per questo scope
+                }
+            }
+        }
+    }
+
+    private void addProfileClaims(JwtEncodingContext context, User user) {
+        context.getClaims()
+                .claim("name", user.getFirstName() + " " + user.getLastName())
+                .claim("given_name", user.getFirstName())
+                .claim("family_name", user.getLastName())
+                .claim("preferred_username", user.getUsername());
+    }
+
+    private void addEmailClaims(JwtEncodingContext context, User user) {
+        context.getClaims()
+                .claim("email", user.getEmail())
+                .claim("email_verified", user.isEmailVerified());
+    }
+
+    private void addAddressClaims(JwtEncodingContext context, User user) {
         context.getClaims().claim("address", user.getAddress());
+    }
+
+    private void addPhoneClaims(JwtEncodingContext context, User user) {
         context.getClaims().claim("phone_number", user.getPhoneNumber());
-        context.getClaims().claim("preferred_username", user.getUsername());
     }
 }

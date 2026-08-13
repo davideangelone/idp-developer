@@ -52,20 +52,17 @@ public class CustomUserDetailsService implements UserDetailsService {
 
         @Override
         public boolean isAccountNonExpired() {
-            // Mantiene il comportamento di default, lasciando il metodo disponibile per future personalizzazioni.
-            return UserDetails.super.isAccountNonExpired();
+            return user.isAccountNonExpired();
         }
 
         @Override
         public boolean isAccountNonLocked() {
-            // Mantiene il comportamento di default, lasciando il metodo disponibile per future personalizzazioni.
-            return UserDetails.super.isAccountNonLocked();
+            return user.isAccountNonLocked();
         }
 
         @Override
         public boolean isCredentialsNonExpired() {
-            // Mantiene il comportamento di default, lasciando il metodo disponibile per future personalizzazioni.
-            return UserDetails.super.isCredentialsNonExpired();
+            return user.isCredentialsNonExpired();
         }
 
         @Override

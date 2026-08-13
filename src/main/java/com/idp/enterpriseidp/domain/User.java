@@ -61,6 +61,15 @@ public class User {
     @Column(nullable = false)
     private boolean emailVerified = false;
 
+    @Column(nullable = false)
+    private boolean accountNonExpired = true;
+
+    @Column(nullable = false)
+    private boolean accountNonLocked = true;
+
+    @Column(nullable = false)
+    private boolean credentialsNonExpired = true;
+
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
     private Instant createdAt;
