@@ -21,7 +21,7 @@ class InvalidAuthorizationCodeTest extends AbstractIdpIntegrationMockMvcTest {
                         .with(httpBasic(appProperties.getOauth2().getClientId(), appProperties.getOauth2().getClientSecret()))
                         .param("grant_type", "authorization_code")
                         .param("code", "non-existent-code")
-                        .param("redirect_uri", appProperties.getOauth2().getRedirectUrlClient())
+                        .param("redirect_uri", appProperties.getOauth2().getRedirectUris().getFirst())
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED))
                 .andExpect(status().isBadRequest())
                 .andReturn();
@@ -37,7 +37,7 @@ class InvalidAuthorizationCodeTest extends AbstractIdpIntegrationMockMvcTest {
                         .with(httpBasic(appProperties.getOauth2().getClientId(), appProperties.getOauth2().getClientSecret()))
                         .param("grant_type", "authorization_code")
                         .param("code", "some-code")
-                        .param("redirect_uri", appProperties.getOauth2().getRedirectUrlClient())
+                        .param("redirect_uri", appProperties.getOauth2().getRedirectUris().getFirst())
                         .param("code_verifier", "wrong-verifier")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED))
                 .andExpect(status().isBadRequest())

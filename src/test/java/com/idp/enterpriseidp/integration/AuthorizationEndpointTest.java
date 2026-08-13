@@ -19,7 +19,7 @@ class AuthorizationEndpointTest extends AbstractIdpIntegrationMockMvcTest {
     void authorize_unauthenticated_redirectsToLogin() throws Exception {
         String query = "response_type=code"
                 + "&client_id=" + appProperties.getOauth2().getClientId()
-                + "&redirect_uri=" + appProperties.getOauth2().getRedirectUrlClient()
+                + "&redirect_uri=" + appProperties.getOauth2().getRedirectUris().getFirst()
                 + "&scope=openid profile email"
                 + "&code_challenge=" + generateCodeChallenge(generateCodeVerifier())
                 + "&code_challenge_method=S256";
@@ -37,7 +37,7 @@ class AuthorizationEndpointTest extends AbstractIdpIntegrationMockMvcTest {
     void authorize_unsupportedResponseType_returnsError() throws Exception {
         String query = "response_type=token"
                 + "&client_id=" + appProperties.getOauth2().getClientId()
-                + "&redirect_uri=" + appProperties.getOauth2().getRedirectUrlClient();
+                + "&redirect_uri=" + appProperties.getOauth2().getRedirectUris().getFirst();
 
         mockMvc.perform(get(authorizeUrl(query)).accept(MediaType.TEXT_HTML))
                 .andExpect(status().isBadRequest())
@@ -50,7 +50,7 @@ class AuthorizationEndpointTest extends AbstractIdpIntegrationMockMvcTest {
     void authorize_missingPkce_unauthenticated_redirectsToLogin() throws Exception {
         String query = "response_type=code"
                 + "&client_id=" + appProperties.getOauth2().getClientId()
-                + "&redirect_uri=" + appProperties.getOauth2().getRedirectUrlClient()
+                + "&redirect_uri=" + appProperties.getOauth2().getRedirectUris().getFirst()
                 + "&scope=openid profile email";
 
         mockMvc.perform(get(authorizeUrl(query)).accept(MediaType.TEXT_HTML))
