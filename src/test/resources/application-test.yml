@@ -7,3 +7,4 @@ server:
 
 authorization-server:
   custom-login-page: false
+  vaadin-security-enabled: false

@@ -50,12 +50,13 @@ public class SecurityConfig {
     public SecurityFilterChain defaultSecurityFilterChain(
             HttpSecurity http, ConfigProperties configProperties) {
 
-        http
-                .with(VaadinSecurityConfigurer.vaadin(), configurer ->
+        if (configProperties.getAuthorizationServer().isVaadinSecurityEnabled()) {
+            http.with(VaadinSecurityConfigurer.vaadin(), configurer ->
                         configurer
                                 .loginView(LoginView.class)
                                 .anyRequest(AuthorizeHttpRequestsConfigurer.AuthorizedUrl::permitAll)
                 );
+        }
 
         if (configProperties.getAuthorizationServer().isCustomLoginPage()) {
             http.formLogin(form -> form

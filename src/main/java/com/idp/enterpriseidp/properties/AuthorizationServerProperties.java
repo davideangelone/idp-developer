@@ -15,4 +15,5 @@ public class AuthorizationServerProperties {
     private boolean reuseRefreshTokens;
     private List<String> supportedScopes;
     private boolean customLoginPage;
+    private boolean vaadinSecurityEnabled;
 }
