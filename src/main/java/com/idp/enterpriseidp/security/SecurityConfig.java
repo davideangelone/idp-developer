@@ -2,6 +2,7 @@ package com.idp.enterpriseidp.security;
 
 import com.idp.enterpriseidp.properties.ConfigProperties;
 import com.idp.enterpriseidp.service.CustomUserDetailsService;
+import com.vaadin.flow.spring.security.RequestUtil;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -44,11 +45,13 @@ public class SecurityConfig {
 
     @Bean
     @Order(2)
-    public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http, ConfigProperties configProperties) {
+    public SecurityFilterChain defaultSecurityFilterChain(
+            HttpSecurity http, ConfigProperties configProperties, RequestUtil requestUtil) {
+
         http
                 .csrf(csrf -> csrf
                         .ignoringRequestMatchers(
-                                request -> "uidl".equals(request.getParameter("v-r"))
+                                requestUtil::isFrameworkInternalRequest
                         )
                 )
                 .authorizeHttpRequests(auth -> auth
