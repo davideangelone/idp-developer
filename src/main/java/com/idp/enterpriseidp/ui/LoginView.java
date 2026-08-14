@@ -4,16 +4,13 @@ import com.idp.enterpriseidp.properties.ConfigProperties;
 import com.idp.enterpriseidp.properties.UserProperties;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.H3;
-import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.dom.Element;
 import com.vaadin.flow.router.Route;
-import com.vaadin.flow.server.auth.AnonymousAllowed;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.security.web.csrf.CsrfToken;
 
 @Route("login")
-@AnonymousAllowed
-public class LoginView extends VerticalLayout {
+public class LoginView extends AnonymousVerticalLayout {
 
     public LoginView(
             ConfigProperties configProperties,
@@ -49,7 +46,7 @@ public class LoginView extends VerticalLayout {
             Element option = new Element("option")
                     .setAttribute("value", user.getUsername())
                     .setAttribute("data-password", user.getPassword())
-                    .setText(user.getUsername() + " (" + user.getFirstName() + " " + user.getLastName() + ")" );
+                    .setText(user.getUsername() + " (" + user.getFirstName() + " " + user.getLastName() + ")");
             select.appendChild(option);
         }
 

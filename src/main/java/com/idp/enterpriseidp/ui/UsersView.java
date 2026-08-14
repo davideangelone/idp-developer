@@ -4,13 +4,12 @@ import com.idp.enterpriseidp.properties.ConfigProperties;
 import com.idp.enterpriseidp.properties.UserProperties;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.H1;
-import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 
 @Route(value = "users", layout = MainLayout.class)
 @PageTitle("Users | Enterprise IDP")
-public class UsersView extends VerticalLayout {
+public class UsersView extends AnonymousVerticalLayout {
 
     public UsersView(ConfigProperties configProperties) {
 

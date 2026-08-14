@@ -4,7 +4,6 @@ import com.idp.enterpriseidp.properties.ConfigProperties;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.html.Span;
-import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.PageTitle;
@@ -12,7 +11,7 @@ import com.vaadin.flow.router.Route;
 
 @Route(value = "clients", layout = MainLayout.class)
 @PageTitle("OAuth2 Clients | Enterprise IDP")
-public class ClientView extends VerticalLayout {
+public class ClientView extends AnonymousVerticalLayout {
 
     public ClientView(ConfigProperties configProperties) {
 

@@ -6,14 +6,13 @@ import com.idp.enterpriseidp.properties.ConfigProperties;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.html.H2;
-import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 
 @Route(value = "configuration", layout = MainLayout.class)
 @PageTitle("Configuration | Enterprise IDP")
-public class ConfigurationView extends VerticalLayout {
+public class ConfigurationView extends AnonymousVerticalLayout {
 
     public ConfigurationView(ConfigProperties configProperties) {
 

@@ -2,7 +2,8 @@ package com.idp.enterpriseidp.security;
 
 import com.idp.enterpriseidp.properties.ConfigProperties;
 import com.idp.enterpriseidp.service.CustomUserDetailsService;
-import com.vaadin.flow.spring.security.RequestUtil;
+import com.idp.enterpriseidp.ui.LoginView;
+import com.vaadin.flow.spring.security.VaadinSecurityConfigurer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -12,6 +13,7 @@ import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AuthorizeHttpRequestsConfigurer;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -46,30 +48,25 @@ public class SecurityConfig {
     @Bean
     @Order(2)
     public SecurityFilterChain defaultSecurityFilterChain(
-            HttpSecurity http, ConfigProperties configProperties, RequestUtil requestUtil) {
+            HttpSecurity http, ConfigProperties configProperties) {
 
         http
-                .csrf(csrf -> csrf
-                        .ignoringRequestMatchers(
-                                requestUtil::isFrameworkInternalRequest
-                        )
-                )
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/", "/login", "/error").permitAll()
-                        .requestMatchers("/VAADIN/**", "/aura/**").permitAll()
-                        .anyRequest().authenticated()
+                .with(VaadinSecurityConfigurer.vaadin(), configurer ->
+                        configurer
+                                .loginView(LoginView.class)
+                                .anyRequest(AuthorizeHttpRequestsConfigurer.AuthorizedUrl::permitAll)
                 );
 
-                if (configProperties.getAuthorizationServer().isCustomLoginPage()) {
-                    http.formLogin(form -> form
-                            .loginPage("/login")
-                            .permitAll()
-                    );
-                } else {
-                    http.formLogin(Customizer.withDefaults());
-                }
+        if (configProperties.getAuthorizationServer().isCustomLoginPage()) {
+            http.formLogin(form -> form
+                    .loginPage("/login")
+                    .permitAll()
+            );
+        } else {
+            http.formLogin(Customizer.withDefaults());
+        }
 
-                http.authenticationProvider(daoAuthenticationProvider());
+        http.authenticationProvider(daoAuthenticationProvider());
 
         return http.build();
     }

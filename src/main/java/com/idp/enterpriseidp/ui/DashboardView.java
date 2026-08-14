@@ -5,15 +5,15 @@ import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.Paragraph;
-import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 
 @Route(value = "", layout = MainLayout.class)
 @PageTitle("Dashboard | Enterprise IDP")
-public class DashboardView extends VerticalLayout {
+public class DashboardView extends AnonymousVerticalLayout {
 
     private static final String OPENID_CONFIGURATION_URL = "/.well-known/openid-configuration";
+
     public DashboardView(ConfigProperties configProperties) {
 
         String openIdConfigurationUrl =
