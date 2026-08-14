@@ -1,6 +1,6 @@
 package com.idp.enterpriseidp.repository;
 
-import com.idp.enterpriseidp.domain.User;
+import com.idp.enterpriseidp.entity.User;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;

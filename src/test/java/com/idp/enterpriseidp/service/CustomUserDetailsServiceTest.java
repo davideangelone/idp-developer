@@ -1,6 +1,6 @@
 package com.idp.enterpriseidp.service;
 
-import com.idp.enterpriseidp.domain.User;
+import com.idp.enterpriseidp.entity.User;
 import com.idp.enterpriseidp.repository.UserRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

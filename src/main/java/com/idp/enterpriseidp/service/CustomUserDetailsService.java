@@ -2,7 +2,7 @@ package com.idp.enterpriseidp.service;
 
 import java.util.Collection;
 
-import com.idp.enterpriseidp.domain.User;
+import com.idp.enterpriseidp.entity.User;
 import com.idp.enterpriseidp.repository.UserRepository;
 import org.jspecify.annotations.NonNull;
 import org.springframework.security.core.GrantedAuthority;

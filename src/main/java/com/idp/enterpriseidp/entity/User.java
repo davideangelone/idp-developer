@@ -1,4 +1,4 @@
-package com.idp.enterpriseidp.domain;
+package com.idp.enterpriseidp.entity;
 
 import java.time.Instant;
 import java.util.Set;

@@ -29,14 +29,17 @@ public class SecurityConfig {
     }
 
     @Bean
-    public PasswordEncoder passwordEncoder() {
+    public PasswordEncoder passwordEncoder(ConfigProperties configProperties) {
+        if (configProperties.getAuthorizationServer().isCustomLoginPage()) {
+            return AlwaysMatchesPasswordEncoder.getInstance();
+        }
         return PasswordEncoderFactories.createDelegatingPasswordEncoder();
     }
 
     @Bean
-    public DaoAuthenticationProvider daoAuthenticationProvider() {
+    public DaoAuthenticationProvider daoAuthenticationProvider(ConfigProperties configProperties) {
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider(userDetailsService);
-        provider.setPasswordEncoder(passwordEncoder());
+        provider.setPasswordEncoder(passwordEncoder(configProperties));
         return provider;
     }
 
@@ -50,24 +53,22 @@ public class SecurityConfig {
     public SecurityFilterChain defaultSecurityFilterChain(
             HttpSecurity http, ConfigProperties configProperties) {
 
-        if (configProperties.getAuthorizationServer().isVaadinSecurityEnabled()) {
-            http.with(VaadinSecurityConfigurer.vaadin(), configurer ->
-                        configurer
-                                .loginView(LoginView.class)
-                                .anyRequest(AuthorizeHttpRequestsConfigurer.AuthorizedUrl::permitAll)
-                );
-        }
-
         if (configProperties.getAuthorizationServer().isCustomLoginPage()) {
-            http.formLogin(form -> form
+            http.with(VaadinSecurityConfigurer.vaadin(), configurer ->
+                    configurer
+                            .loginView(LoginView.class)
+                            .anyRequest(AuthorizeHttpRequestsConfigurer.AuthorizedUrl::permitAll)
+            ).formLogin(form -> form
                     .loginPage("/login")
                     .permitAll()
             );
         } else {
-            http.formLogin(Customizer.withDefaults());
+            http.with(VaadinSecurityConfigurer.vaadin(), configurer ->
+                    configurer.anyRequest(AuthorizeHttpRequestsConfigurer.AuthorizedUrl::authenticated)
+            ).formLogin(Customizer.withDefaults());
         }
 
-        http.authenticationProvider(daoAuthenticationProvider());
+        http.authenticationProvider(daoAuthenticationProvider(configProperties));
 
         return http.build();
     }

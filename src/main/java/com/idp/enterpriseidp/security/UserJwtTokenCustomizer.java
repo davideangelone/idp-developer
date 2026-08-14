@@ -1,8 +1,12 @@
 package com.idp.enterpriseidp.security;
 
+import java.util.Map;
 import java.util.Optional;
 
-import com.idp.enterpriseidp.domain.User;
+import com.idp.enterpriseidp.entity.User;
+import com.idp.enterpriseidp.mapper.UserDtoMapper;
+import com.idp.enterpriseidp.model.UserDto;
+import com.idp.enterpriseidp.properties.ConfigProperties;
 import com.idp.enterpriseidp.service.CustomUserDetailsService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
@@ -14,10 +18,17 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class UserJwtTokenCustomizer implements OAuth2TokenCustomizer<JwtEncodingContext> {
 
+    private final ConfigProperties configProperties;
+    private final UserDtoMapper userDtoMapper;
+
+    public UserJwtTokenCustomizer(ConfigProperties configProperties, UserDtoMapper userDtoMapper) {
+        this.configProperties = configProperties;
+        this.userDtoMapper = userDtoMapper;
+    }
+
     @Override
     public void customize(JwtEncodingContext context) {
         var principal = context.getPrincipal();
-
         if (principal == null || principal.getPrincipal() == null) {
             return;
         }
@@ -25,64 +36,65 @@ public class UserJwtTokenCustomizer implements OAuth2TokenCustomizer<JwtEncoding
         Object userDetails = principal.getPrincipal();
 
         if (userDetails instanceof CustomUserDetailsService.CustomUserDetails(User user)) {
-            addUserClaims(context, user);
+            UserDto userDto = userDtoMapper.toDto(user);
+            addUserClaims(context, userDto);
         }
 
         if (principal.getName() != null) {
-            log.info(
-                    "Generating token: user={}, tokenType={}, clientId={}, grantType={}, scopes={}, claims={}",
-                    principal.getName(),
-                    context.getTokenType().getValue(),
-                    context.getRegisteredClient().getClientId(),
-                    Optional.ofNullable(context.getAuthorizationGrantType())
-                            .map(AuthorizationGrantType::getValue)
-                            .orElse(null),
-                    context.getAuthorizedScopes(),
-                    context.getClaims().build().getClaims()
-            );
+            logToken(principal.getName(), context);
         }
     }
 
-    private void addUserClaims(
-            JwtEncodingContext context,
-            User user) {
+    private void logToken(String username, JwtEncodingContext context) {
+        log.info("Generating token: user={}, tokenType={}, clientId={}, grantType={}, scopes={}, claims={}",
+                username,
+                context.getTokenType().getValue(),
+                context.getRegisteredClient().getClientId(),
+                Optional.ofNullable(context.getAuthorizationGrantType())
+                        .map(AuthorizationGrantType::getValue)
+                        .orElse(null),
+                context.getAuthorizedScopes(),
+                context.getClaims().build().getClaims()
+        );
+    }
 
-        context.getClaims().subject(String.valueOf(user.getId()));
-        context.getClaims().claim("roles", user.getRoles());
-        context.getClaims().claim("groups", user.getGroups());
+    private void addUserClaims(JwtEncodingContext context, UserDto userDto) {
+        context.getClaims().subject(String.valueOf(userDto.id()));
+        addMappings(context, userDto, configProperties.getClaims().getAlways());
 
         for (String scope : context.getAuthorizedScopes()) {
-            switch (scope) {
-                case "profile" -> addProfileClaims(context, user);
-                case "email" -> addEmailClaims(context, user);
-                case "address" -> addAddressClaims(context, user);
-                case "phone" -> addPhoneClaims(context, user);
-                default -> {
-                    // Nessun claim custom per questo scope
-                }
+            configProperties.getClaims().getScopes().stream()
+                    .filter(s -> s.getScope().equals(scope))
+                    .findFirst()
+                    .ifPresent(s -> addMappings(context, userDto, s.getMappings()));
+        }
+    }
+
+    private void addMappings(JwtEncodingContext context, UserDto userDto, Map<String, String> mappings) {
+        for (Map.Entry<String, String> entry : mappings.entrySet()) {
+            Object value = resolveUserProperty(userDto, entry.getValue());
+            if (value != null) {
+                context.getClaims().claim(entry.getKey(), value);
             }
         }
     }
 
-    private void addProfileClaims(JwtEncodingContext context, User user) {
-        context.getClaims()
-                .claim("name", user.getFirstName() + " " + user.getLastName())
-                .claim("given_name", user.getFirstName())
-                .claim("family_name", user.getLastName())
-                .claim("preferred_username", user.getUsername());
-    }
-
-    private void addEmailClaims(JwtEncodingContext context, User user) {
-        context.getClaims()
-                .claim("email", user.getEmail())
-                .claim("email_verified", user.isEmailVerified());
-    }
-
-    private void addAddressClaims(JwtEncodingContext context, User user) {
-        context.getClaims().claim("address", user.getAddress());
-    }
-
-    private void addPhoneClaims(JwtEncodingContext context, User user) {
-        context.getClaims().claim("phone_number", user.getPhoneNumber());
+    private Object resolveUserProperty(UserDto userDto, String property) {
+        return switch (property) {
+            case "roles" -> userDto.roles();
+            case "groups" -> userDto.groups();
+            case "fullName" -> userDto.getFullName();
+            case "firstName" -> userDto.firstName();
+            case "lastName" -> userDto.lastName();
+            case "username" -> userDto.username();
+            case "email" -> userDto.email();
+            case "emailVerified" -> userDto.emailVerified();
+            case "address" -> userDto.address();
+            case "phoneNumber" -> userDto.phoneNumber();
+            default -> {
+                log.warn("Unknown User property configured for JWT claim: {}", property);
+                yield null;
+            }
+        };
     }
 }

@@ -1,7 +1,7 @@
 package com.idp.enterpriseidp.ui;
 
-import com.idp.enterpriseidp.properties.ConfigProperties;
-import com.idp.enterpriseidp.properties.UserProperties;
+import com.idp.enterpriseidp.model.UserDto;
+import com.idp.enterpriseidp.service.UserService;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.dom.Element;
@@ -13,7 +13,7 @@ import org.springframework.security.web.csrf.CsrfToken;
 public class LoginView extends AnonymousVerticalLayout {
 
     public LoginView(
-            ConfigProperties configProperties,
+            UserService userService,
             HttpServletRequest request) {
 
         setSizeFull();
@@ -42,11 +42,11 @@ public class LoginView extends AnonymousVerticalLayout {
                 .set("padding", "10px")
                 .set("font-size", "16px");
 
-        for (UserProperties user : configProperties.getUsers()) {
+        for (UserDto userDto : userService.getAllUsers()) {
             Element option = new Element("option")
-                    .setAttribute("value", user.getUsername())
-                    .setAttribute("data-password", user.getPassword())
-                    .setText(user.getUsername() + " (" + user.getFirstName() + " " + user.getLastName() + ")");
+                    .setAttribute("value", userDto.username())
+                    .setAttribute("data-password", userDto.password())
+                    .setText(userDto.username() + " (" + userDto.getFullName() + ")");
             select.appendChild(option);
         }
 

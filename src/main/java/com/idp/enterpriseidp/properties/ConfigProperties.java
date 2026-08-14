@@ -11,5 +11,6 @@ public class ConfigProperties {
     private AuthorizationServerProperties authorizationServer;
     private JwtProperties jwt;
     private OAuth2ClientProperties oauth2Client;
+    private ClaimsProperties claims;
     private List<UserProperties> users;
 }

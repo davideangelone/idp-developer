@@ -1,10 +1,14 @@
 package com.idp.enterpriseidp.config;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
-import com.idp.enterpriseidp.domain.User;
-import com.idp.enterpriseidp.properties.UserProperties;
+import com.idp.enterpriseidp.entity.User;
+import com.idp.enterpriseidp.mapper.UserDtoMapper;
+import com.idp.enterpriseidp.model.UserDto;
+import com.idp.enterpriseidp.properties.ClaimsProperties;
+import com.idp.enterpriseidp.properties.ConfigProperties;
 import com.idp.enterpriseidp.security.UserJwtTokenCustomizer;
 import com.idp.enterpriseidp.service.CustomUserDetailsService;
 import org.junit.jupiter.api.BeforeEach;
@@ -38,36 +42,77 @@ class OAuth2TokenCustomizerTest {
     @Mock
     private JwtClaimsSet.Builder claimsBuilder;
 
+    @Mock
+    private ConfigProperties configProperties;
+
+    @Mock
+    private UserDtoMapper userDtoMapper;
+
     private UserJwtTokenCustomizer userJwtTokenCustomizer;
 
-    private UserProperties userProperties;
+    private UserDto userDto;
+
+    private ClaimsProperties claimsProperties;
 
     @BeforeEach
     void setUp() {
-        userJwtTokenCustomizer = new UserJwtTokenCustomizer();
+        userJwtTokenCustomizer = new UserJwtTokenCustomizer(configProperties, userDtoMapper);
+        userDto = new UserDto(1L, "Mario", "Rossi",
+                "test", "password",
+                "test@email.com", true,
+                "Via Roma 1", "+39 333 1234567",
+                Set.of("USER"), Set.of("users")
+        );
 
-        userProperties = new UserProperties();
-        userProperties.setUsername("test");
-        userProperties.setPassword("encoded");
-        userProperties.setEmail("test@example.com");
-        userProperties.setFirstName("Mario");
-        userProperties.setLastName("Rossi");
-        userProperties.setAddress("Via Roma 1");
-        userProperties.setPhoneNumber("+39 333 1234567");
-        userProperties.setRoles(Set.of("USER"));
-        userProperties.setGroups(Set.of("users"));
+
+        claimsProperties = new ClaimsProperties();
+
+        claimsProperties.setAlways(Map.of(
+                "roles", "roles",
+                "groups", "groups"
+        ));
+
+        ClaimsProperties.ScopeClaims profile = scopeClaims("profile", Map.of(
+                "name", "fullName",
+                "given_name", "firstName",
+                "family_name", "lastName",
+                "preferred_username", "username"
+        ));
+
+        ClaimsProperties.ScopeClaims email = scopeClaims("email", Map.of(
+                "email", "email",
+                "email_verified", "emailVerified"
+        ));
+
+        ClaimsProperties.ScopeClaims address = scopeClaims("address", Map.of(
+                "address", "address"
+        ));
+
+        ClaimsProperties.ScopeClaims phone = scopeClaims("phone", Map.of(
+                "phone_number", "phoneNumber"
+        ));
+
+        claimsProperties.setScopes(List.of(profile, email, address, phone));
+    }
+
+    private ClaimsProperties.ScopeClaims scopeClaims(String scope, Map<String, String> mappings) {
+        ClaimsProperties.ScopeClaims scopeClaims = new ClaimsProperties.ScopeClaims();
+        scopeClaims.setScope(scope);
+        scopeClaims.setMappings(mappings);
+        return scopeClaims;
     }
 
     @Test
     @DisplayName("Aggiunge i claim custom quando il principal e CustomUserDetails")
     void addsCustomClaims_whenPrincipalIsCustomUserDetails() {
-        CustomUserDetailsService.CustomUserDetails customUserDetails = getCustomUserDetails(userProperties);
+        CustomUserDetailsService.CustomUserDetails customUserDetails = getCustomUserDetails(userDto);
 
         when(context.getPrincipal()).thenReturn(authentication);
         when(authentication.getPrincipal()).thenReturn(customUserDetails);
         when(context.getClaims()).thenReturn(claimsBuilder);
         when(context.getAuthorizedScopes()).thenReturn(Set.of("profile", "email", "address", "phone"));
-        when(claimsBuilder.claim(any(String.class), any())).thenReturn(claimsBuilder);
+        when(userDtoMapper.toDto(any(User.class))).thenReturn(userDto);
+        when(configProperties.getClaims()).thenReturn(claimsProperties);
 
         userJwtTokenCustomizer.customize(context);
 
@@ -83,31 +128,31 @@ class OAuth2TokenCustomizerTest {
         );
 
         assertThat(valueCaptor.getAllValues()).containsExactlyInAnyOrder(
-                userProperties.getFirstName() + " " + userProperties.getLastName(),
-                userProperties.getFirstName(),
-                userProperties.getLastName(),
-                userProperties.getRoles(),
-                userProperties.getGroups(),
-                userProperties.getEmail(),
-                true,
-                userProperties.getAddress(),
-                userProperties.getPhoneNumber(),
-                userProperties.getUsername()
+                userDto.getFullName(),
+                userDto.firstName(),
+                userDto.lastName(),
+                userDto.roles(),
+                userDto.groups(),
+                userDto.email(),
+                userDto.emailVerified(),
+                userDto.address(),
+                userDto.phoneNumber(),
+                userDto.username()
         );
     }
 
-    private CustomUserDetailsService.CustomUserDetails getCustomUserDetails(UserProperties userProperties) {
+    private CustomUserDetailsService.CustomUserDetails getCustomUserDetails(UserDto userDto) {
         User user = new User();
         user.setId(10L);
-        user.setUsername(userProperties.getUsername());
-        user.setEmail(userProperties.getEmail());
-        user.setPassword(userProperties.getPassword());
-        user.setFirstName(userProperties.getFirstName());
-        user.setLastName(userProperties.getLastName());
-        user.setAddress(userProperties.getAddress());
-        user.setPhoneNumber(userProperties.getPhoneNumber());
-        user.setRoles(userProperties.getRoles());
-        user.setGroups(userProperties.getGroups());
+        user.setUsername(userDto.username());
+        user.setEmail(userDto.email());
+        user.setPassword(userDto.password());
+        user.setFirstName(userDto.firstName());
+        user.setLastName(userDto.lastName());
+        user.setAddress(userDto.address());
+        user.setPhoneNumber(userDto.phoneNumber());
+        user.setRoles(userDto.roles());
+        user.setGroups(userDto.groups());
         user.setEnabled(true);
         user.setEmailVerified(true);
 

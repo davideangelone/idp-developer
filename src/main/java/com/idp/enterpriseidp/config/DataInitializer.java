@@ -1,6 +1,6 @@
 package com.idp.enterpriseidp.config;
 
-import com.idp.enterpriseidp.domain.User;
+import com.idp.enterpriseidp.entity.User;
 import com.idp.enterpriseidp.properties.ConfigProperties;
 import com.idp.enterpriseidp.repository.UserRepository;
 import org.springframework.boot.CommandLineRunner;
