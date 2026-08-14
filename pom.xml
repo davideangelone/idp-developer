@@ -19,9 +19,9 @@
 
     <properties>
         <java.version>21</java.version>
-        <nimbus.version>10.0.1</nimbus.version>
-        <lombok.version>1.18.38</lombok.version>
-        <vaadin.version>25.2.4</vaadin.version>
+        <nimbus.version>10.9.1</nimbus.version>
+        <lombok.version>1.18.46</lombok.version>
+        <vaadin.version>25.2.6</vaadin.version>
     </properties>
 
     <dependencyManagement>
