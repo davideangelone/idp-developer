@@ -1,6 +1,6 @@
 package com.idp.enterpriseidp.ui;
 
-import com.idp.enterpriseidp.properties.AppProperties;
+import com.idp.enterpriseidp.properties.ConfigProperties;
 import com.idp.enterpriseidp.properties.UserProperties;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.H1;
@@ -12,7 +12,7 @@ import com.vaadin.flow.router.Route;
 @PageTitle("Users | Enterprise IDP")
 public class UsersView extends VerticalLayout {
 
-    public UsersView(AppProperties appProperties) {
+    public UsersView(ConfigProperties configProperties) {
 
         Grid<UserProperties> grid = new Grid<>();
 
@@ -23,7 +23,7 @@ public class UsersView extends VerticalLayout {
         grid.addColumn(UserProperties::getGroups).setHeader("Groups");
         grid.addColumn(UserProperties::getEmail).setHeader("Email");
 
-        grid.setItems(appProperties.getUsers());
+        grid.setItems(configProperties.getUsers());
 
         add(
                 new H1("Users"),

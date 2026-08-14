@@ -4,3 +4,6 @@ spring:
 
 server:
   port: 0
+
+authorization-server:
+  custom-login-page: false

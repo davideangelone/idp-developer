@@ -1,6 +1,6 @@
 package com.idp.enterpriseidp.ui;
 
-import com.idp.enterpriseidp.properties.AppProperties;
+import com.idp.enterpriseidp.properties.ConfigProperties;
 import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.html.H3;
@@ -14,10 +14,10 @@ import com.vaadin.flow.router.Route;
 public class DashboardView extends VerticalLayout {
 
     private static final String OPENID_CONFIGURATION_URL = "/.well-known/openid-configuration";
-    public DashboardView(AppProperties appProperties) {
+    public DashboardView(ConfigProperties configProperties) {
 
         String openIdConfigurationUrl =
-                appProperties.getAuthorizationServer().getIssuerUrl() + OPENID_CONFIGURATION_URL;
+                configProperties.getAuthorizationServer().getIssuerUrl() + OPENID_CONFIGURATION_URL;
         Anchor discoveryLink = new Anchor(
                 openIdConfigurationUrl,
                 "OpenID Connect Discovery"

@@ -1,6 +1,6 @@
 package com.idp.enterpriseidp.ui;
 
-import com.idp.enterpriseidp.properties.AppProperties;
+import com.idp.enterpriseidp.properties.ConfigProperties;
 import com.idp.enterpriseidp.properties.UserProperties;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.H3;
@@ -16,7 +16,7 @@ import org.springframework.security.web.csrf.CsrfToken;
 public class LoginView extends VerticalLayout {
 
     public LoginView(
-            AppProperties appProperties,
+            ConfigProperties configProperties,
             HttpServletRequest request) {
 
         setSizeFull();
@@ -45,7 +45,7 @@ public class LoginView extends VerticalLayout {
                 .set("padding", "10px")
                 .set("font-size", "16px");
 
-        for (UserProperties user : appProperties.getUsers()) {
+        for (UserProperties user : configProperties.getUsers()) {
             Element option = new Element("option")
                     .setAttribute("value", user.getUsername())
                     .setAttribute("data-password", user.getPassword())

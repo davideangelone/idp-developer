@@ -1,6 +1,6 @@
 package com.idp.enterpriseidp.ui;
 
-import com.idp.enterpriseidp.properties.AppProperties;
+import com.idp.enterpriseidp.properties.ConfigProperties;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.html.Span;
@@ -14,7 +14,7 @@ import com.vaadin.flow.router.Route;
 @PageTitle("OAuth2 Clients | Enterprise IDP")
 public class ClientView extends VerticalLayout {
 
-    public ClientView(AppProperties appProperties) {
+    public ClientView(ConfigProperties configProperties) {
 
         setSpacing(true);
         setPadding(true);
@@ -25,14 +25,14 @@ public class ClientView extends VerticalLayout {
 
         TextArea redirectUris = new TextArea("Redirect URIs");
         redirectUris.setValue(
-                String.join(System.lineSeparator(), appProperties.getOauth2Client().getRedirectUris())
+                String.join(System.lineSeparator(), configProperties.getOauth2Client().getRedirectUris())
         );
         redirectUris.setReadOnly(true);
         redirectUris.setWidthFull();
 
         TextArea postLogoutRedirectUris = new TextArea("Post Logout Redirect URIs");
         postLogoutRedirectUris.setValue(
-                String.join(System.lineSeparator(), appProperties.getOauth2Client().getPostLogoutRedirectUris())
+                String.join(System.lineSeparator(), configProperties.getOauth2Client().getPostLogoutRedirectUris())
         );
         postLogoutRedirectUris.setReadOnly(true);
         postLogoutRedirectUris.setWidthFull();
@@ -40,26 +40,26 @@ public class ClientView extends VerticalLayout {
         oauth2.add(
                 readOnlyField(
                         "Client URL",
-                        appProperties.getOauth2Client().getClientUrl()
+                        configProperties.getOauth2Client().getClientUrl()
                 ),
                 new Span(),
                 readOnlyField(
                         "Client ID",
-                        appProperties.getOauth2Client().getClientId()
+                        configProperties.getOauth2Client().getClientId()
                 ),
                 readOnlyField(
                         "Client Secret",
-                        appProperties.getOauth2Client().getClientSecret()
+                        configProperties.getOauth2Client().getClientSecret()
                 ),
                 redirectUris,
                 postLogoutRedirectUris,
                 readOnlyField(
                         "Scopes",
-                        String.join(", ", appProperties.getOauth2Client().getScopes())
+                        String.join(", ", configProperties.getOauth2Client().getScopes())
                 ),
                 readOnlyField(
                         "Authorization Grant Types",
-                        String.join(", ", appProperties.getOauth2Client().getAuthorizationGrantTypes())
+                        String.join(", ", configProperties.getOauth2Client().getAuthorizationGrantTypes())
                 )
         );
 

@@ -3,7 +3,10 @@ spring:
     name: enterprise-idp
 
   config:
-    import: classpath:users.yaml
+    import:
+      - classpath:config-idp.yml
+      - classpath:config-oauth2-client.yml
+      - classpath:config-users.yml
 
   datasource:
     url: jdbc:h2:mem:idp-test;DB_CLOSE_DELAY=-1
@@ -30,33 +33,3 @@ logging:
     root: INFO
     com.idp: INFO
     org.atmosphere: ERROR
-
-app:
-  authorization-server:
-    issuer-url: http://localhost:${server.port}
-    authorization-consent: true
-    access-token-ttl: 5m
-    refresh-token-ttl: 30d
-    authorization-code-ttl: 5m
-    reuse-refresh-tokens: false
-    supported-scopes: [openid, profile, email, address, phone]
-    custom-login-page: true
-
-  jwt:
-    key-store: classpath:idp-keystore.p12
-    key-store-type: PKCS12
-    key-store-password: changeit
-    key-alias: idp-signing
-    key-password: changeit
-
-  oauth2-client:
-    client-url: http://localhost:8080
-    client-id: oidc-client
-    client-secret: secret
-    redirect-uris:
-      - ${app.oauth2-client.client-url}/login/oauth2/code/${app.oauth2-client.client-id}
-      - https://oauth.pstmn.io/v1/callback
-    post-logout-redirect-uris:
-      - ${app.oauth2-client.client-url}/
-    scopes: [openid, profile, email, address, phone]
-    authorization-grant-types: [authorization_code, refresh_token, client_credentials]

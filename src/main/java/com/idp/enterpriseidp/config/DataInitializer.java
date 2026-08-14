@@ -1,7 +1,7 @@
 package com.idp.enterpriseidp.config;
 
 import com.idp.enterpriseidp.domain.User;
-import com.idp.enterpriseidp.properties.AppProperties;
+import com.idp.enterpriseidp.properties.ConfigProperties;
 import com.idp.enterpriseidp.repository.UserRepository;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
@@ -15,9 +15,9 @@ public class DataInitializer {
     CommandLineRunner initUsers(
             UserRepository userRepository,
             PasswordEncoder passwordEncoder,
-            AppProperties appProperties) {
+            ConfigProperties configProperties) {
 
-        return args -> appProperties.getUsers().forEach(userProperties -> {
+        return args -> configProperties.getUsers().forEach(userProperties -> {
 
             User user = userRepository.findByUsername(userProperties.getUsername())
                     .orElseGet(User::new);

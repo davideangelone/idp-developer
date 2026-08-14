@@ -564,63 +564,65 @@ L'obiettivo è verificare il comportamento dell'IdP come Authorization Server/OI
 
 ## Configurazione principale
 
-Le principali proprietà utilizzate dal POC sono nel file `application.yaml`:
+Le principali proprietà utilizzate dal POC sono nei file seguenti files.
 
+File `config-idp.yaml` per la configurazione dell'Authorization Server:
 ```yaml
-app:
-  authorization-server:
-    issuer-url: http://localhost:${server.port}
-    authorization-consent: true
-    access-token-ttl: 5m
-    refresh-token-ttl: 30d
-    authorization-code-ttl: 5m
-    reuse-refresh-tokens: false
-    supported-scopes: [openid, profile, email, address, phone]
-    custom-login-page: true
+authorization-server:
+  issuer-url: http://localhost:${server.port}
+  authorization-consent: true
+  access-token-ttl: 5m
+  refresh-token-ttl: 30d
+  authorization-code-ttl: 5m
+  reuse-refresh-tokens: false
+  supported-scopes: [openid, profile, email, address, phone]
+  custom-login-page: true
 
-  jwt:
-    key-store: classpath:idp-keystore.p12
-    key-store-type: PKCS12
-    key-store-password: changeit
-    key-alias: idp-signing
-    key-password: changeit
-
-  oauth2-client:
-    client-url: http://localhost:8080
-    client-id: oidc-client
-    client-secret: secret
-    redirect-uris:
-      - ${app.oauth2-client.client-url}/login/oauth2/code/${app.oauth2-client.client-id}
-      - https://oauth.pstmn.io/v1/callback
-    post-logout-redirect-uris:
-      - ${app.oauth2-client.client-url}/
-    scopes: [openid, profile, email, address, phone]
-    authorization-grant-types: [authorization_code, refresh_token, client_credentials]
+jwt:
+  key-store: classpath:idp-keystore.p12
+  key-store-type: PKCS12
+  key-store-password: changeit
+  key-alias: idp-signing
+  key-password: changeit
 ```
 
-Gli utenti di test sono configurati nel file `users.yaml`:
+File `config-oauth2-client.yml` per la configurazione del client Oauth2:
 ```yaml
-app:
-  users:
-    - username: test
-      password: password
-      first-name: Mario
-      last-name: Rossi
-      email: mario.rossi@example.com
-      address: Via Roma 1, Bologna
-      phone-number: "+39 333 1234567"
-      roles: [USER]
-      groups: [users]
+oauth2-client:
+client-url: http://localhost:8080
+client-id: oidc-client
+client-secret: secret
+redirect-uris:
+- ${oauth2-client.client-url}/login/oauth2/code/${oauth2-client.client-id}
+- https://oauth.pstmn.io/v1/callback
+post-logout-redirect-uris:
+- ${oauth2-client.client-url}/
+scopes: [openid, profile, email, address, phone]
+authorization-grant-types: [authorization_code, refresh_token, client_credentials]
+```
 
-    - username: test2
-      password: password
-      first-name: John
-      last-name: Doe
-      email: john.doe@example.com
-      address: 123 Main Street
-      phone-number: "+1 555 1234567"
-      roles: [ADMIN, USER]
-      groups: [administrators, users]
+Gli utenti di test sono configurati nel file `config-users.yml`:
+```yaml
+users:
+  - username: test
+    password: password
+    first-name: Mario
+    last-name: Rossi
+    email: mario.rossi@example.com
+    address: Via Roma 1, Bologna
+    phone-number: "+39 333 1234567"
+    roles: [USER]
+    groups: [users]
+
+  - username: test2
+    password: password
+    first-name: John
+    last-name: Doe
+    email: john.doe@example.com
+    address: 123 Main Street
+    phone-number: "+1 555 1234567"
+    roles: [ADMIN, USER]
+    groups: [administrators, users]
 ```
 
 Questi valori sono destinati esclusivamente all'ambiente locale di sviluppo e testing.

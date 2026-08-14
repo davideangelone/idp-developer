@@ -1,6 +1,6 @@
 package com.idp.enterpriseidp.security;
 
-import com.idp.enterpriseidp.properties.AppProperties;
+import com.idp.enterpriseidp.properties.ConfigProperties;
 import com.idp.enterpriseidp.service.CustomUserDetailsService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -44,7 +44,7 @@ public class SecurityConfig {
 
     @Bean
     @Order(2)
-    public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http, AppProperties appProperties) {
+    public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http, ConfigProperties configProperties) {
         http
                 .csrf(csrf -> csrf
                         .ignoringRequestMatchers(
@@ -57,7 +57,7 @@ public class SecurityConfig {
                         .anyRequest().authenticated()
                 );
 
-                if (appProperties.getAuthorizationServer().isCustomLoginPage()) {
+                if (configProperties.getAuthorizationServer().isCustomLoginPage()) {
                     http.formLogin(form -> form
                             .loginPage("/login")
                             .permitAll()

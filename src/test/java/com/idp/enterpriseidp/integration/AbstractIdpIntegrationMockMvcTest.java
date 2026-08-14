@@ -6,7 +6,7 @@ import java.security.SecureRandom;
 import java.util.Base64;
 import java.util.Map;
 
-import com.idp.enterpriseidp.properties.AppProperties;
+import com.idp.enterpriseidp.properties.ConfigProperties;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
@@ -29,7 +29,7 @@ public abstract class AbstractIdpIntegrationMockMvcTest {
     protected ObjectMapper objectMapper;
 
     @Autowired
-    protected AppProperties appProperties;
+    protected ConfigProperties configProperties;
 
     private final SecureRandom secureRandom = new SecureRandom();
 

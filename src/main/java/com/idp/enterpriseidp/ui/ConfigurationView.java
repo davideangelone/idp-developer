@@ -2,7 +2,7 @@ package com.idp.enterpriseidp.ui;
 
 import java.time.Duration;
 
-import com.idp.enterpriseidp.properties.AppProperties;
+import com.idp.enterpriseidp.properties.ConfigProperties;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.html.H2;
@@ -15,7 +15,7 @@ import com.vaadin.flow.router.Route;
 @PageTitle("Configuration | Enterprise IDP")
 public class ConfigurationView extends VerticalLayout {
 
-    public ConfigurationView(AppProperties appProperties) {
+    public ConfigurationView(ConfigProperties configProperties) {
 
         setSpacing(true);
         setPadding(true);
@@ -27,35 +27,35 @@ public class ConfigurationView extends VerticalLayout {
         authorizationServer.add(
                 readOnlyField(
                         "Issuer",
-                        appProperties.getAuthorizationServer().getIssuerUrl()
+                        configProperties.getAuthorizationServer().getIssuerUrl()
                 ),
                 readOnlyField(
                         "Authorization Consent",
-                        String.valueOf(appProperties.getAuthorizationServer().isAuthorizationConsent())
+                        String.valueOf(configProperties.getAuthorizationServer().isAuthorizationConsent())
                 ),
                 readOnlyField(
                         "Access Token TTL",
-                        formatDuration(appProperties.getAuthorizationServer().getAccessTokenTtl())
+                        formatDuration(configProperties.getAuthorizationServer().getAccessTokenTtl())
                 ),
                 readOnlyField(
                         "Refresh Token TTL",
-                        formatDuration(appProperties.getAuthorizationServer().getRefreshTokenTtl())
+                        formatDuration(configProperties.getAuthorizationServer().getRefreshTokenTtl())
                 ),
                 readOnlyField(
                         "Authorization Code TTL",
-                        formatDuration(appProperties.getAuthorizationServer().getAuthorizationCodeTtl())
+                        formatDuration(configProperties.getAuthorizationServer().getAuthorizationCodeTtl())
                 ),
                 readOnlyField(
                         "Reuse Refresh Tokens",
-                        String.valueOf(appProperties.getAuthorizationServer().isReuseRefreshTokens())
+                        String.valueOf(configProperties.getAuthorizationServer().isReuseRefreshTokens())
                 ),
                 readOnlyField(
                         "Supported scopes",
-                        String.join(", ", appProperties.getAuthorizationServer().getSupportedScopes())
+                        String.join(", ", configProperties.getAuthorizationServer().getSupportedScopes())
                 ),
                 readOnlyField(
                         "Login page",
-                        appProperties.getAuthorizationServer().isCustomLoginPage() ? "Custom" : "Default"
+                        configProperties.getAuthorizationServer().isCustomLoginPage() ? "Custom" : "Default"
                 )
         );
 

@@ -6,8 +6,8 @@ import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @Data
-@ConfigurationProperties(prefix = "app")
-public class AppProperties {
+@ConfigurationProperties
+public class ConfigProperties {
     private AuthorizationServerProperties authorizationServer;
     private JwtProperties jwt;
     private OAuth2ClientProperties oauth2Client;
