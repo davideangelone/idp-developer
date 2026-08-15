@@ -1,10 +1,8 @@
-# Enterprise IDP – OAuth2 / OIDC POC
+# Enterprise IDP – OAuth2 / OIDC
 
 Identity Provider locale basato su **Spring Boot**, **Spring Security** e **Spring Authorization Server**, utilizzabile per simulare un Authorization Server OAuth2 / OpenID Connect durante lo sviluppo e il testing di applicazioni.
 
-Il progetto è pensato principalmente come **IdP di test locale** per applicazioni che devono implementare autenticazione OAuth2/OIDC, evitando di dover utilizzare un provider esterno durante lo sviluppo.
-
-> **Nota:** questo progetto è destinato esclusivamente a sviluppo, test e Proof of Concept. Non è progettato per ambienti di produzione.
+> **Nota:** questo progetto è destinato esclusivamente a sviluppo, test e Proof of Concept. ***Non è adatto ad ambienti di produzione***.
 
 ---
 
@@ -331,7 +329,7 @@ Le credenziali utilizzate dal progetto sono esclusivamente credenziali di svilup
 
 # JWT e JWKS
 
-L'IdP genera una coppia di chiavi RSA all'avvio dell'applicazione.
+All'avvio, l'IdP carica la coppia di chiavi RSA da un keystore dell'applicazione.
 
 La chiave pubblica viene esposta tramite:
 
@@ -340,8 +338,6 @@ http://localhost:9080/oauth2/jwks
 ```
 
 I token JWT emessi dall'IdP possono quindi essere verificati utilizzando la chiave pubblica corrispondente.
-
-> Le chiavi RSA vengono generate nuovamente ad ogni avvio dell'applicazione. Questa configurazione è intenzionale per il POC e non è adatta a un ambiente di produzione.
 
 ---
 
