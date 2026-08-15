@@ -45,7 +45,7 @@ public class LoginView extends AnonymousVerticalLayout {
         for (UserDto userDto : userService.getAllUsers()) {
             Element option = new Element("option")
                     .setAttribute("value", userDto.username())
-                    .setAttribute("data-password", userDto.password())
+                    .setAttribute("data-password", "fake-password")
                     .setText(userDto.username() + " (" + userDto.getFullName() + ")");
             select.appendChild(option);
         }

@@ -14,7 +14,6 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AuthorizeHttpRequestsConfigurer;
-import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
@@ -29,17 +28,14 @@ public class SecurityConfig {
     }
 
     @Bean
-    public PasswordEncoder passwordEncoder(ConfigProperties configProperties) {
-        if (configProperties.getAuthorizationServer().isCustomLoginPage()) {
-            return AlwaysMatchesPasswordEncoder.getInstance();
-        }
-        return PasswordEncoderFactories.createDelegatingPasswordEncoder();
+    public PasswordEncoder passwordEncoder(boolean customLoginPage) {
+        return CustomPasswordEncoder.getInstance(customLoginPage);
     }
 
     @Bean
     public DaoAuthenticationProvider daoAuthenticationProvider(ConfigProperties configProperties) {
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider(userDetailsService);
-        provider.setPasswordEncoder(passwordEncoder(configProperties));
+        provider.setPasswordEncoder(passwordEncoder(configProperties.getAuthorizationServer().isCustomLoginPage()));
         return provider;
     }
 
@@ -53,7 +49,9 @@ public class SecurityConfig {
     public SecurityFilterChain defaultSecurityFilterChain(
             HttpSecurity http, ConfigProperties configProperties) {
 
-        if (configProperties.getAuthorizationServer().isCustomLoginPage()) {
+        boolean customLoginPage = configProperties.getAuthorizationServer().isCustomLoginPage();
+
+        if (customLoginPage) {
             http.with(VaadinSecurityConfigurer.vaadin(), configurer ->
                     configurer
                             .loginView(LoginView.class)
