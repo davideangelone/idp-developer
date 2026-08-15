@@ -1,7 +1,5 @@
 package com.idp.enterpriseidp.config;
 
-import java.util.List;
-
 import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,6 +8,8 @@ import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
 
 @Component
 public class StartupLogger implements ApplicationListener<ApplicationReadyEvent> {
@@ -33,7 +33,7 @@ public class StartupLogger implements ApplicationListener<ApplicationReadyEvent>
         String baseUrl = String.format("http://%s:%s", address, port);
         logger.info("====================================================================");
         logger.info("Applicazione avviata con successo!");
-        logger.info("Application URL: {}", baseUrl);
+        logger.info("UI Application URL: {}", baseUrl);
         logger.info("Current profile: {}", List.of(environment.getActiveProfiles()));
         logger.info("OpenID Connect Discovery Endpoint: {}/.well-known/openid-configuration", baseUrl);
         logger.info("====================================================================");
