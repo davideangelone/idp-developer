@@ -24,7 +24,6 @@ import org.springframework.security.oauth2.server.authorization.token.JwtEncodin
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -72,34 +71,32 @@ class OAuth2TokenCustomizerTest {
                 "groups", "groups"
         ));
 
-        ClaimsProperties.ScopeClaims profile = scopeClaims("profile", Map.of(
+        var profile = Map.of(
                 "name", "fullName",
                 "given_name", "firstName",
                 "family_name", "lastName",
                 "preferred_username", "username"
-        ));
+        );
 
-        ClaimsProperties.ScopeClaims email = scopeClaims("email", Map.of(
+        var email = Map.of(
                 "email", "email",
                 "email_verified", "emailVerified"
-        ));
+        );
 
-        ClaimsProperties.ScopeClaims address = scopeClaims("address", Map.of(
+        var address = Map.of(
                 "address", "address"
-        ));
+        );
 
-        ClaimsProperties.ScopeClaims phone = scopeClaims("phone", Map.of(
+        var phone = Map.of(
                 "phone_number", "phoneNumber"
+        );
+
+        claimsProperties.setScopes(Map.of(
+                "profile", profile,
+                "email", email,
+                "address", address,
+                "phone", phone
         ));
-
-        claimsProperties.setScopes(List.of(profile, email, address, phone));
-    }
-
-    private ClaimsProperties.ScopeClaims scopeClaims(String scope, Map<String, String> mappings) {
-        ClaimsProperties.ScopeClaims scopeClaims = new ClaimsProperties.ScopeClaims();
-        scopeClaims.setScope(scope);
-        scopeClaims.setMappings(mappings);
-        return scopeClaims;
     }
 
     @Test
@@ -118,7 +115,7 @@ class OAuth2TokenCustomizerTest {
 
         ArgumentCaptor<String> keyCaptor = ArgumentCaptor.forClass(String.class);
         ArgumentCaptor<Object> valueCaptor = ArgumentCaptor.forClass(Object.class);
-        verify(claimsBuilder, atLeast(1)).claim(keyCaptor.capture(), valueCaptor.capture());
+        verify(claimsBuilder, times(10)).claim(keyCaptor.capture(), valueCaptor.capture());
         verify(claimsBuilder, times(1)).subject(any(String.class));
 
         List<String> keys = keyCaptor.getAllValues();

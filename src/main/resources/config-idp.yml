@@ -19,20 +19,20 @@ claims:
   always:
     roles: roles
     groups: groups
+
   scopes:
-    - scope: profile
-      mappings:
-        name: fullName
-        given_name: firstName
-        family_name: lastName
-        preferred_username: username
-    - scope: email
-      mappings:
-        email: email
-        email_verified: emailVerified
-    - scope: address
-      mappings:
-        address: address
-    - scope: phone
-      mappings:
-        phone_number: phoneNumber
+    profile:
+      name: fullName
+      given_name: firstName
+      family_name: lastName
+      preferred_username: username
+
+    email:
+      email: email
+      email_verified: emailVerified
+
+    address:
+      address: address
+
+    phone:
+      phone_number: phoneNumber

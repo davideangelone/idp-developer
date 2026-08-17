@@ -2,6 +2,7 @@ package com.idp.enterpriseidp.security;
 
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
 
 import com.idp.enterpriseidp.entity.User;
 import com.idp.enterpriseidp.mapper.UserDtoMapper;
@@ -17,6 +18,19 @@ import org.springframework.stereotype.Component;
 @Component
 @Slf4j
 public class UserJwtTokenCustomizer implements OAuth2TokenCustomizer<JwtEncodingContext> {
+
+    private static final Map<String, Function<UserDto, Object>> USER_PROPERTIES = Map.of(
+            "roles", UserDto::roles,
+            "groups", UserDto::groups,
+            "fullName", UserDto::getFullName,
+            "firstName", UserDto::firstName,
+            "lastName", UserDto::lastName,
+            "username", UserDto::username,
+            "email", UserDto::email,
+            "emailVerified", UserDto::emailVerified,
+            "address", UserDto::address,
+            "phoneNumber", UserDto::phoneNumber
+    );
 
     private final ConfigProperties configProperties;
     private final UserDtoMapper userDtoMapper;
@@ -36,7 +50,7 @@ public class UserJwtTokenCustomizer implements OAuth2TokenCustomizer<JwtEncoding
         Object userDetails = principal.getPrincipal();
 
         if (userDetails instanceof CustomUserDetailsService.CustomUserDetails(User user)) {
-            UserDto userDto = userDtoMapper.toDto(user);
+            var userDto = userDtoMapper.toDto(user);
             addUserClaims(context, userDto);
         }
 
@@ -63,38 +77,21 @@ public class UserJwtTokenCustomizer implements OAuth2TokenCustomizer<JwtEncoding
         addMappings(context, userDto, configProperties.getClaims().getAlways());
 
         for (String scope : context.getAuthorizedScopes()) {
-            configProperties.getClaims().getScopes().stream()
-                    .filter(s -> s.getScope().equals(scope))
-                    .findFirst()
-                    .ifPresent(s -> addMappings(context, userDto, s.getMappings()));
+            var mappings = configProperties.getClaims().getScopes().get(scope);
+            if (mappings != null) {
+                addMappings(context, userDto, mappings);
+            }
         }
     }
 
     private void addMappings(JwtEncodingContext context, UserDto userDto, Map<String, String> mappings) {
-        for (Map.Entry<String, String> entry : mappings.entrySet()) {
-            Object value = resolveUserProperty(userDto, entry.getValue());
-            if (value != null) {
-                context.getClaims().claim(entry.getKey(), value);
-            }
-        }
-    }
-
-    private Object resolveUserProperty(UserDto userDto, String property) {
-        return switch (property) {
-            case "roles" -> userDto.roles();
-            case "groups" -> userDto.groups();
-            case "fullName" -> userDto.getFullName();
-            case "firstName" -> userDto.firstName();
-            case "lastName" -> userDto.lastName();
-            case "username" -> userDto.username();
-            case "email" -> userDto.email();
-            case "emailVerified" -> userDto.emailVerified();
-            case "address" -> userDto.address();
-            case "phoneNumber" -> userDto.phoneNumber();
-            default -> {
+        mappings.forEach((claim, property) -> {
+            var resolver = USER_PROPERTIES.get(property);
+            if (resolver != null) {
+                context.getClaims().claim(claim, resolver.apply(userDto));
+            } else {
                 log.warn("Unknown User property configured for JWT claim: {}", property);
-                yield null;
             }
-        };
+        });
     }
 }
