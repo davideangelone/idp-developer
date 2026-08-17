@@ -5,7 +5,6 @@ import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.textfield.TextArea;
-import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 
@@ -63,13 +62,5 @@ public class ClientView extends AnonymousVerticalLayout {
         );
 
         add(oauth2);
-    }
-
-    private TextField readOnlyField(String label, String value) {
-        TextField field = new TextField(label);
-        field.setValue(value != null ? value : "");
-        field.setReadOnly(true);
-        field.setWidthFull();
-        return field;
     }
 }

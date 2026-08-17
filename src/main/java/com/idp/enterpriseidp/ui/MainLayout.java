@@ -67,6 +67,13 @@ public class MainLayout extends AppLayout {
 
         navigation.addItem(
                 new SideNavItem(
+                        "Scopes / Claims",
+                        ClaimsView.class,
+                        new Icon(VaadinIcon.SITEMAP))
+        );
+
+        navigation.addItem(
+                new SideNavItem(
                         "Configuration",
                         ConfigurationView.class,
                         new Icon(VaadinIcon.COG))

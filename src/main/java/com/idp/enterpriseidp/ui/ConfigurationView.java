@@ -6,7 +6,6 @@ import com.idp.enterpriseidp.properties.ConfigProperties;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.html.H2;
-import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 
@@ -59,14 +58,6 @@ public class ConfigurationView extends AnonymousVerticalLayout {
         );
 
         add(authorizationServer);
-    }
-
-    private TextField readOnlyField(String label, String value) {
-        TextField field = new TextField(label);
-        field.setValue(value != null ? value : "");
-        field.setReadOnly(true);
-        field.setWidthFull();
-        return field;
     }
 
     private String formatDuration(Duration duration) {

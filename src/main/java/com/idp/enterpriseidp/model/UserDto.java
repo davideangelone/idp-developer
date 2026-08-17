@@ -14,8 +14,4 @@ public record UserDto(
         String phoneNumber,
         Set<String> roles,
         Set<String> groups) {
-
-    public String getFullName() {
-        return firstName + " " + lastName;
-    }
 }

@@ -1,7 +1,8 @@
 package com.idp.enterpriseidp.ui;
 
-import com.idp.enterpriseidp.model.UserDto;
-import com.idp.enterpriseidp.service.UserService;
+import com.idp.enterpriseidp.properties.ConfigProperties;
+import com.idp.enterpriseidp.properties.UserProperties;
+import com.idp.enterpriseidp.utils.UserUtils;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.router.PageTitle;
@@ -11,18 +12,18 @@ import com.vaadin.flow.router.Route;
 @PageTitle("Users | Enterprise IDP")
 public class UsersView extends AnonymousVerticalLayout {
 
-    public UsersView(UserService userService) {
+    public UsersView(ConfigProperties configProperties) {
 
-        Grid<UserDto> grid = new Grid<>();
+        Grid<UserProperties> grid = new Grid<>();
 
-        grid.addColumn(UserDto::getFullName).setHeader("User");
-        grid.addColumn(UserDto::username).setHeader("Username");
-        grid.addColumn(UserDto::password).setHeader("Password");
-        grid.addColumn(UserDto::roles).setHeader("Roles");
-        grid.addColumn(UserDto::groups).setHeader("Groups");
-        grid.addColumn(UserDto::email).setHeader("Email");
+        grid.addColumn(UserUtils::getFullName).setHeader("User");
+        grid.addColumn(UserProperties::getUsername).setHeader("Username");
+        grid.addColumn(UserProperties::getPassword).setHeader("Password");
+        grid.addColumn(UserProperties::getRoles).setHeader("Roles");
+        grid.addColumn(UserProperties::getGroups).setHeader("Groups");
+        grid.addColumn(UserProperties::getEmail).setHeader("Email");
 
-        grid.setItems(userService.getAllUsers());
+        grid.setItems(configProperties.getUsers());
 
         add(
                 new H1("Users"),

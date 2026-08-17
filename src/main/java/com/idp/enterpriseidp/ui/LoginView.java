@@ -2,6 +2,7 @@ package com.idp.enterpriseidp.ui;
 
 import com.idp.enterpriseidp.model.UserDto;
 import com.idp.enterpriseidp.service.UserService;
+import com.idp.enterpriseidp.utils.UserUtils;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.dom.Element;
@@ -46,7 +47,7 @@ public class LoginView extends AnonymousVerticalLayout {
             Element option = new Element("option")
                     .setAttribute("value", userDto.username())
                     .setAttribute("data-password", "fake-password")
-                    .setText(userDto.username() + " (" + userDto.getFullName() + ")");
+                    .setText(userDto.username() + " (" + UserUtils.getFullName(userDto) + ")");
             select.appendChild(option);
         }
 
