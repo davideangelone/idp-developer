@@ -85,8 +85,8 @@ class AuthorizationCodeFlowE2ETest extends AbstractIdpIntegrationMockMvcTest {
 
         // 1. authorize -> expect 302 to /login
         String authQuery = "response_type=code"
-                + "&client_id=" + configProperties.getOauth2Client().getClientId()
-                + "&redirect_uri=" + URLEncoder.encode(configProperties.getOauth2Client().getRedirectUris().getFirst(), StandardCharsets.UTF_8)
+                + "&client_id=" + getOauth2Client().getClientId()
+                + "&redirect_uri=" + URLEncoder.encode(getOauth2Client().getRedirectUris().getFirst(), StandardCharsets.UTF_8)
                 + "&scope=" + URLEncoder.encode(SCOPES, StandardCharsets.UTF_8)
                 + "&state=" + state
                 + "&nonce=" + nonce
@@ -119,14 +119,14 @@ class AuthorizationCodeFlowE2ETest extends AbstractIdpIntegrationMockMvcTest {
 
         // POST /oauth2/authorize consent -> 302 to redirect_uri with code
         StringBuilder consentBody = new StringBuilder();
-        consentBody.append("client_id=").append(configProperties.getOauth2Client().getClientId());
+        consentBody.append("client_id=").append(getOauth2Client().getClientId());
         consentBody.append("&state=").append(consentState);
         for (String scope : scopes) {
             consentBody.append("&scope=").append(scope);
         }
 
         String codeLocation = getConsentLocation(consentBody);
-        assertThat(codeLocation).startsWith(configProperties.getOauth2Client().getRedirectUris().getFirst());
+        assertThat(codeLocation).startsWith(getOauth2Client().getRedirectUris().getFirst());
         String code = extractParam(codeLocation, "code");
         assertThat(code).isNotNull().isNotEmpty();
         // The final redirect's `state` must equal the OAuth `state` originally sent on the
@@ -137,7 +137,7 @@ class AuthorizationCodeFlowE2ETest extends AbstractIdpIntegrationMockMvcTest {
         // token exchange -> 200
         String tokenBody = "grant_type=authorization_code"
                 + "&code=" + code
-                + "&redirect_uri=" + URLEncoder.encode(configProperties.getOauth2Client().getRedirectUris().getFirst(), StandardCharsets.UTF_8)
+                + "&redirect_uri=" + URLEncoder.encode(getOauth2Client().getRedirectUris().getFirst(), StandardCharsets.UTF_8)
                 + "&code_verifier=" + codeVerifier;
         String tokensJson = postToken(tokenBody);
         Map<String, Object> tokens = parseJson(tokensJson);
@@ -213,7 +213,7 @@ class AuthorizationCodeFlowE2ETest extends AbstractIdpIntegrationMockMvcTest {
 
     private void assertAccessClaims(JWTClaimsSet accessClaims, Long expectedSub) throws ParseException {
         assertThat(accessClaims.getIssuer()).isEqualTo(configProperties.getAuthorizationServer().getIssuerUrl());
-        assertThat(accessClaims.getAudience()).containsExactly(configProperties.getOauth2Client().getClientId());
+        assertThat(accessClaims.getAudience()).containsExactly(getOauth2Client().getClientId());
         assertThat(accessClaims.getSubject()).isEqualTo(String.valueOf(expectedSub));
         assertThat(accessClaims.getStringListClaim("scope")).containsExactlyInAnyOrder("openid", "profile", "email");
         long lifetime = accessClaims.getExpirationTime().toInstant().getEpochSecond()
@@ -223,10 +223,10 @@ class AuthorizationCodeFlowE2ETest extends AbstractIdpIntegrationMockMvcTest {
 
     private void assertIdClaims(JWTClaimsSet idClaims, Long expectedSub, String nonce, String username1) throws ParseException {
         assertThat(idClaims.getIssuer()).isEqualTo(configProperties.getAuthorizationServer().getIssuerUrl());
-        assertThat(idClaims.getAudience()).containsExactly(configProperties.getOauth2Client().getClientId());
+        assertThat(idClaims.getAudience()).containsExactly(getOauth2Client().getClientId());
         assertThat(idClaims.getSubject()).isEqualTo(String.valueOf(expectedSub));
         assertThat(idClaims.getStringClaim("nonce")).isEqualTo(nonce);
-        assertThat(idClaims.getStringClaim("azp")).isEqualTo(configProperties.getOauth2Client().getClientId());
+        assertThat(idClaims.getStringClaim("azp")).isEqualTo(getOauth2Client().getClientId());
         assertThat(idClaims.getStringClaim("preferred_username")).isEqualTo(username1);
         assertThat(idClaims.getExpirationTime().toInstant().getEpochSecond())
                 .isGreaterThan(idClaims.getIssueTime().toInstant().getEpochSecond());
@@ -269,7 +269,7 @@ class AuthorizationCodeFlowE2ETest extends AbstractIdpIntegrationMockMvcTest {
         String codeChallenge = generateCodeChallenge(codeVerifier);
         String state = generateRandomState();
 
-        String code = performAuthorizeAndConsent(codeChallenge, state, configProperties.getOauth2Client().getRedirectUris().getFirst());
+        String code = performAuthorizeAndConsent(codeChallenge, state, getOauth2Client().getRedirectUris().getFirst());
 
         // use a different verifier
         String wrongVerifier = generateCodeVerifier();
@@ -280,7 +280,7 @@ class AuthorizationCodeFlowE2ETest extends AbstractIdpIntegrationMockMvcTest {
                         .POST(HttpRequest.BodyPublishers.ofString(
                                 "grant_type=authorization_code"
                                         + "&code=" + code
-                                        + "&redirect_uri=" + URLEncoder.encode(configProperties.getOauth2Client().getRedirectUris().getFirst(), StandardCharsets.UTF_8)
+                                        + "&redirect_uri=" + URLEncoder.encode(getOauth2Client().getRedirectUris().getFirst(), StandardCharsets.UTF_8)
                                         + "&code_verifier=" + wrongVerifier))
                         .build(),
                 HttpResponse.BodyHandlers.ofString());
@@ -297,8 +297,8 @@ class AuthorizationCodeFlowE2ETest extends AbstractIdpIntegrationMockMvcTest {
 
         // Authenticated authorize WITHOUT code_challenge must be rejected (requireProofKey=true).
         String query = "response_type=code"
-                + "&client_id=" + configProperties.getOauth2Client().getClientId()
-                + "&redirect_uri=" + URLEncoder.encode(configProperties.getOauth2Client().getRedirectUris().getFirst(), StandardCharsets.UTF_8)
+                + "&client_id=" + getOauth2Client().getClientId()
+                + "&redirect_uri=" + URLEncoder.encode(getOauth2Client().getRedirectUris().getFirst(), StandardCharsets.UTF_8)
                 + "&scope=" + URLEncoder.encode(SCOPES, StandardCharsets.UTF_8)
                 + "&state=" + generateRandomState();
         HttpResponse<String> authResponse = getAuthResponse(query);
@@ -319,30 +319,30 @@ class AuthorizationCodeFlowE2ETest extends AbstractIdpIntegrationMockMvcTest {
         String codeChallenge = generateCodeChallenge(codeVerifier);
         String state = generateRandomState();
 
-        String code = performAuthorizeAndConsent(codeChallenge, state, configProperties.getOauth2Client().getRedirectUris().getFirst());
+        String code = performAuthorizeAndConsent(codeChallenge, state, getOauth2Client().getRedirectUris().getFirst());
 
         String tokenBody = "grant_type=authorization_code"
                 + "&code=" + code
-                + "&redirect_uri=" + URLEncoder.encode(configProperties.getOauth2Client().getRedirectUris().getFirst(), StandardCharsets.UTF_8)
+                + "&redirect_uri=" + URLEncoder.encode(getOauth2Client().getRedirectUris().getFirst(), StandardCharsets.UTF_8)
                 + "&code_verifier=" + codeVerifier;
         Map<String, Object> tokens = parseJson(postToken(tokenBody));
         String idToken = (String) tokens.get("id_token");
 
         String logoutBody = "id_token_hint=" + idToken
-                + "&post_logout_redirect_uri=" + URLEncoder.encode(configProperties.getOauth2Client().getPostLogoutRedirectUris().getFirst(), StandardCharsets.UTF_8)
-                + "&client_id=" + configProperties.getOauth2Client().getClientId();
+                + "&post_logout_redirect_uri=" + URLEncoder.encode(getOauth2Client().getPostLogoutRedirectUris().getFirst(), StandardCharsets.UTF_8)
+                + "&client_id=" + getOauth2Client().getClientId();
         HttpResponse<String> logoutResponse = httpClient.send(
                 request(URI.create(baseUrl + "/connect/logout"))
                         .header("Content-Type", "application/x-www-form-urlencoded")
                         .POST(HttpRequest.BodyPublishers.ofString(logoutBody)).build(),
                 HttpResponse.BodyHandlers.ofString());
         assertThat(logoutResponse.statusCode()).isEqualTo(HttpStatus.FOUND.value());
-        assertThat(locationOf(logoutResponse)).isEqualTo(configProperties.getOauth2Client().getPostLogoutRedirectUris().getFirst());
+        assertThat(locationOf(logoutResponse)).isEqualTo(getOauth2Client().getPostLogoutRedirectUris().getFirst());
     }
 
     private String performAuthorizeAndConsent(String codeChallenge, String state, String redirectUri) throws Exception {
         String authQuery = "response_type=code"
-                + "&client_id=" + configProperties.getOauth2Client().getClientId()
+                + "&client_id=" + getOauth2Client().getClientId()
                 + "&redirect_uri=" + URLEncoder.encode(redirectUri, StandardCharsets.UTF_8)
                 + "&scope=" + URLEncoder.encode(SCOPES, StandardCharsets.UTF_8)
                 + "&state=" + state
@@ -367,7 +367,7 @@ class AuthorizationCodeFlowE2ETest extends AbstractIdpIntegrationMockMvcTest {
         List<String> scopes = extractScopeValues(consentPage.body());
 
         StringBuilder consentBody = new StringBuilder();
-        consentBody.append("client_id=").append(configProperties.getOauth2Client().getClientId());
+        consentBody.append("client_id=").append(getOauth2Client().getClientId());
         consentBody.append("&state=").append(consentState);
         for (String scope : scopes) {
             consentBody.append("&scope=").append(scope);
@@ -391,7 +391,7 @@ class AuthorizationCodeFlowE2ETest extends AbstractIdpIntegrationMockMvcTest {
     }
 
     private String basicAuth() {
-        return "Basic " + Base64.getEncoder().encodeToString((configProperties.getOauth2Client().getClientId() + ":" + configProperties.getOauth2Client().getClientSecret()).getBytes(StandardCharsets.UTF_8));
+        return "Basic " + Base64.getEncoder().encodeToString((getOauth2Client().getClientId() + ":" + getOauth2Client().getClientSecret()).getBytes(StandardCharsets.UTF_8));
     }
 
     private JWKSet fetchJwkSet() throws Exception {

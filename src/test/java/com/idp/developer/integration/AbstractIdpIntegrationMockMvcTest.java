@@ -7,6 +7,7 @@ import java.util.Base64;
 import java.util.Map;
 
 import com.idp.developer.properties.ConfigProperties;
+import com.idp.developer.properties.OAuth2ClientProperties;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
@@ -53,5 +54,13 @@ public abstract class AbstractIdpIntegrationMockMvcTest {
 
     protected Map<String, Object> parseJson(String json) {
         return objectMapper.readValue(json, new TypeReference<>() {});
+    }
+
+    protected OAuth2ClientProperties getOauth2Client() {
+        return configProperties.getOauth2Clients()
+                .values()
+                .stream()
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException("Nessun client OAuth2 configurato"));
     }
 }

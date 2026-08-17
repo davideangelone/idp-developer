@@ -20,7 +20,7 @@ class ScopeValidationTest extends AbstractIdpIntegrationMockMvcTest {
     @DisplayName("Scope non supportato restituisce invalid_scope")
     void unsupportedScope_returnsInvalidScope() throws Exception {
         MvcResult result = mockMvc.perform(post("/oauth2/token")
-                        .with(httpBasic(configProperties.getOauth2Client().getClientId(), configProperties.getOauth2Client().getClientSecret()))
+                        .with(httpBasic(getOauth2Client().getClientId(), getOauth2Client().getClientSecret()))
                         .param("grant_type", "client_credentials")
                         .param("scope", "openid profile email invalid_scope")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED))
