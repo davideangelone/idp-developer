@@ -28,14 +28,14 @@ public class SecurityConfig {
     }
 
     @Bean
-    public PasswordEncoder passwordEncoder(boolean customLoginPage) {
-        return CustomPasswordEncoder.getInstance(customLoginPage);
+    public PasswordEncoder passwordEncoder(boolean freeLogin) {
+        return CustomPasswordEncoder.getInstance(freeLogin);
     }
 
     @Bean
     public DaoAuthenticationProvider daoAuthenticationProvider(ConfigProperties configProperties) {
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider(userDetailsService);
-        provider.setPasswordEncoder(passwordEncoder(configProperties.getAuthorizationServer().isCustomLoginPage()));
+        provider.setPasswordEncoder(passwordEncoder(configProperties.getAuthorizationServer().isFreeLogin()));
         return provider;
     }
 
@@ -49,9 +49,9 @@ public class SecurityConfig {
     public SecurityFilterChain defaultSecurityFilterChain(
             HttpSecurity http, ConfigProperties configProperties) {
 
-        boolean customLoginPage = configProperties.getAuthorizationServer().isCustomLoginPage();
+        boolean freeLogin = configProperties.getAuthorizationServer().isFreeLogin();
 
-        if (customLoginPage) {
+        if (freeLogin) {
             http.with(VaadinSecurityConfigurer.vaadin(), configurer ->
                     configurer
                             .loginView(LoginView.class)

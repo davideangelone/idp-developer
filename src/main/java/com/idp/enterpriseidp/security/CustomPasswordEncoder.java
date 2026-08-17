@@ -6,16 +6,16 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 public class CustomPasswordEncoder implements PasswordEncoder {
 
-    private final boolean customLogin;
+    private final boolean freeLogin;
     private final PasswordEncoder passwordEncoder;
 
-    private CustomPasswordEncoder(boolean customLogin) {
-        this.customLogin = customLogin;
+    private CustomPasswordEncoder(boolean freeLogin) {
+        this.freeLogin = freeLogin;
         this.passwordEncoder = PasswordEncoderFactories.createDelegatingPasswordEncoder();
     }
 
-    public static PasswordEncoder getInstance(boolean customLogin) {
-        return new CustomPasswordEncoder(customLogin);
+    public static PasswordEncoder getInstance(boolean freeLogin) {
+        return new CustomPasswordEncoder(freeLogin);
     }
 
     @Override
@@ -25,6 +25,6 @@ public class CustomPasswordEncoder implements PasswordEncoder {
 
     @Override
     public boolean matches(@Nullable CharSequence rawPassword, @Nullable String encodedPassword) {
-        return customLogin || passwordEncoder.matches(rawPassword, encodedPassword);
+        return freeLogin || passwordEncoder.matches(rawPassword, encodedPassword);
     }
 }

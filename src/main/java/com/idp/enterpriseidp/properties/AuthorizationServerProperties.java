@@ -14,5 +14,5 @@ public class AuthorizationServerProperties {
     private Duration authorizationCodeTtl = Duration.ofMinutes(5);
     private boolean reuseRefreshTokens;
     private List<String> supportedScopes;
-    private boolean customLoginPage;
+    private boolean freeLogin;
 }
