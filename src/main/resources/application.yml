@@ -5,7 +5,7 @@ spring:
   config:
     import:
       - classpath:config-idp.yml
-      - classpath:config-oauth2-client.yml
+      - classpath:config-oauth2-clients.yml
       - classpath:config-users.yml
 
   datasource:
@@ -19,7 +19,6 @@ spring:
       connection-timeout: 30000
 
   jpa:
-    database-platform: org.hibernate.dialect.H2Dialect
     hibernate:
       ddl-auto: update
     show-sql: false

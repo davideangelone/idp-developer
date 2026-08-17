@@ -16,8 +16,7 @@ public class DashboardView extends AnonymousVerticalLayout {
 
     public DashboardView(ConfigProperties configProperties) {
 
-        String openIdConfigurationUrl =
-                configProperties.getAuthorizationServer().getIssuerUrl() + OPENID_CONFIGURATION_URL;
+        String openIdConfigurationUrl = configProperties.getAuthorizationServer().getIssuerUrl() + OPENID_CONFIGURATION_URL;
         Anchor discoveryLink = new Anchor(
                 openIdConfigurationUrl,
                 "OpenID Connect Discovery"

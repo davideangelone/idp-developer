@@ -582,19 +582,32 @@ jwt:
   key-password: changeit
 ```
 
-File `config-oauth2-client.yml` per la configurazione del client Oauth2:
+File `config-oauth2-clients.yml` per la configurazione dei client Oauth2:
 ```yaml
-oauth2-client:
-client-url: http://localhost:8080
-client-id: oidc-client
-client-secret: secret
-redirect-uris:
-- ${oauth2-client.client-url}/login/oauth2/code/${oauth2-client.client-id}
-- https://oauth.pstmn.io/v1/callback
-post-logout-redirect-uris:
-- ${oauth2-client.client-url}/
-scopes: [openid, profile, email, address, phone]
-authorization-grant-types: [authorization_code, refresh_token, client_credentials]
+oauth2-clients:
+  first-client:
+    client-url: http://localhost:8080
+    client-id: oidc-client
+    client-secret: secret
+    redirect-uris:
+      - ${oauth2-clients.first-client.client-url}/login/oauth2/code/${oauth2-clients.first-client.client-id}
+      - https://oauth.pstmn.io/v1/callback
+    post-logout-redirect-uris:
+      - ${oauth2-clients.first-client.client-url}/
+    scopes: [openid, profile, email, address, phone]
+    authorization-grant-types: [authorization_code, refresh_token, client_credentials]
+
+  second-client:
+    client-url: http://localhost:8081
+    client-id: test-client
+    client-secret: test-secret
+    redirect-uris:
+      - ${oauth2-clients.second-client.client-url}/login/oauth2/code/${oauth2-clients.second-client.client-id}
+    post-logout-redirect-uris:
+      - ${oauth2-clients.second-client.client-url}/
+    scopes: [openid, profile, email]
+    authorization-grant-types: [authorization_code, refresh_token]
+
 ```
 
 Gli utenti di test sono configurati nel file `config-users.yml`:

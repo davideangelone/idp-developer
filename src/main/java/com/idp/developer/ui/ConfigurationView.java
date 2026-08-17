@@ -23,38 +23,14 @@ public class ConfigurationView extends AnonymousVerticalLayout {
 
         FormLayout authorizationServer = new FormLayout();
         authorizationServer.add(
-                readOnlyField(
-                        "Issuer",
-                        configProperties.getAuthorizationServer().getIssuerUrl()
-                ),
-                readOnlyField(
-                        "Authorization Consent",
-                        String.valueOf(configProperties.getAuthorizationServer().isAuthorizationConsent())
-                ),
-                readOnlyField(
-                        "Access Token TTL",
-                        formatDuration(configProperties.getAuthorizationServer().getAccessTokenTtl())
-                ),
-                readOnlyField(
-                        "Refresh Token TTL",
-                        formatDuration(configProperties.getAuthorizationServer().getRefreshTokenTtl())
-                ),
-                readOnlyField(
-                        "Authorization Code TTL",
-                        formatDuration(configProperties.getAuthorizationServer().getAuthorizationCodeTtl())
-                ),
-                readOnlyField(
-                        "Reuse Refresh Tokens",
-                        String.valueOf(configProperties.getAuthorizationServer().isReuseRefreshTokens())
-                ),
-                readOnlyField(
-                        "Supported scopes",
-                        String.join(", ", configProperties.getAuthorizationServer().getSupportedScopes())
-                ),
-                readOnlyField(
-                        "Login",
-                        configProperties.getAuthorizationServer().isFreeLogin() ? "Free" : "Default"
-                )
+                readOnlyField("Issuer", configProperties.getAuthorizationServer().getIssuerUrl()),
+                readOnlyField("Authorization Consent", String.valueOf(configProperties.getAuthorizationServer().isAuthorizationConsent())),
+                readOnlyField("Access Token TTL", formatDuration(configProperties.getAuthorizationServer().getAccessTokenTtl())),
+                readOnlyField("Refresh Token TTL", formatDuration(configProperties.getAuthorizationServer().getRefreshTokenTtl())),
+                readOnlyField("Authorization Code TTL", formatDuration(configProperties.getAuthorizationServer().getAuthorizationCodeTtl())),
+                readOnlyField("Reuse Refresh Tokens", String.valueOf(configProperties.getAuthorizationServer().isReuseRefreshTokens())),
+                readOnlyField("Supported scopes", configProperties.getAuthorizationServer().getSupportedScopes()),
+                readOnlyField("Login", configProperties.getAuthorizationServer().isFreeLogin() ? "Free" : "Default")
         );
 
         add(authorizationServer);

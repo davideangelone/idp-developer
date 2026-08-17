@@ -1,6 +1,10 @@
 package com.idp.developer.ui;
 
+import java.util.Collection;
+import java.util.List;
+
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 
@@ -13,5 +17,17 @@ public class AnonymousVerticalLayout extends VerticalLayout {
         field.setReadOnly(true);
         field.setWidthFull();
         return field;
+    }
+
+    protected TextField readOnlyField(String label, Collection<String> values) {
+        return readOnlyField(label, String.join(",", values));
+    }
+
+    protected TextArea readOnlyTextArea(String label, List<String> values) {
+        TextArea textArea = new TextArea(label);
+        textArea.setValue(String.join(System.lineSeparator(), values));
+        textArea.setReadOnly(true);
+        textArea.setWidthFull();
+        return textArea;
     }
 }

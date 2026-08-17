@@ -23,12 +23,7 @@ public class ClaimsView extends AnonymousVerticalLayout {
         add(new H2("Always"));
 
         VerticalLayout alwaysClaims = new VerticalLayout();
-        alwaysClaims.add(
-                readOnlyField(
-                        null,
-                        String.join(", ", configProperties.getClaims().getAlways().keySet())
-                )
-        );
+        alwaysClaims.add(readOnlyField(null, configProperties.getClaims().getAlways().keySet()));
 
         add(alwaysClaims);
 
@@ -37,12 +32,7 @@ public class ClaimsView extends AnonymousVerticalLayout {
         VerticalLayout scopeClaims = new VerticalLayout();
 
         for (Map.Entry<String, Map<String, String>> scopeEntry : configProperties.getClaims().getScopes().entrySet()) {
-            scopeClaims.add(
-                    readOnlyField(
-                            scopeEntry.getKey(),
-                            String.join(", ", scopeEntry.getValue().keySet())
-                    )
-            );
+            scopeClaims.add(readOnlyField(scopeEntry.getKey(), scopeEntry.getValue().keySet()));
         }
 
         add(scopeClaims);

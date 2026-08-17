@@ -3,6 +3,7 @@ package com.idp.developer.config;
 import java.util.UUID;
 
 import com.idp.developer.properties.ConfigProperties;
+import com.idp.developer.properties.OAuth2ClientProperties;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -16,24 +17,33 @@ import org.springframework.security.oauth2.server.authorization.settings.TokenSe
 
 @Configuration
 @Slf4j
-public class RegisteredClientConfig {
+public class OAuth2ClientConfig {
 
     @Bean
     public RegisteredClientRepository registeredClientRepository(ConfigProperties configProperties) {
+        var clients = configProperties.getOauth2Clients()
+                .values()
+                .stream()
+                .map(client -> createRegisteredClient(configProperties, client))
+                .toList();
+        return new InMemoryRegisteredClientRepository(clients);
+    }
+
+    private RegisteredClient createRegisteredClient(ConfigProperties configProperties, OAuth2ClientProperties oauth2ClientProperties) {
         RegisteredClient registeredClient = RegisteredClient.withId(UUID.randomUUID().toString())
-                .clientId(configProperties.getOauth2Client().getClientId())
-                .clientSecret("{noop}" + configProperties.getOauth2Client().getClientSecret())
+                .clientId(oauth2ClientProperties.getClientId())
+                .clientSecret("{noop}" + oauth2ClientProperties.getClientSecret())
                 .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
                 .authorizationGrantTypes(grantTypes ->
-                        grantTypes.addAll(configProperties.getOauth2Client().getAuthorizationGrantTypes().stream()
+                        grantTypes.addAll(oauth2ClientProperties.getAuthorizationGrantTypes().stream()
                                 .map(AuthorizationGrantType::new)
                                 .toList())
                 )
                 .redirectUris(redirectUris ->
-                        redirectUris.addAll(configProperties.getOauth2Client().getRedirectUris()))
+                        redirectUris.addAll(oauth2ClientProperties.getRedirectUris()))
                 .postLogoutRedirectUris(postLogoutRedirectUris ->
-                        postLogoutRedirectUris.addAll(configProperties.getOauth2Client().getPostLogoutRedirectUris()))
-                .scopes(scopes -> scopes.addAll(configProperties.getOauth2Client().getScopes()))
+                        postLogoutRedirectUris.addAll(oauth2ClientProperties.getPostLogoutRedirectUris()))
+                .scopes(scopes -> scopes.addAll(oauth2ClientProperties.getScopes()))
                 .clientSettings(ClientSettings.builder()
                         .requireAuthorizationConsent(configProperties.getAuthorizationServer().isAuthorizationConsent())
                         .requireProofKey(true)
@@ -42,7 +52,7 @@ public class RegisteredClientConfig {
                 .build();
 
         log.info("Registered client '{}' scopes: {}", registeredClient.getClientId(), registeredClient.getScopes());
-        return new InMemoryRegisteredClientRepository(registeredClient);
+        return registeredClient;
     }
 
     private TokenSettings getTokenSettings(ConfigProperties configProperties) {
