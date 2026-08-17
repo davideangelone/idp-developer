@@ -52,8 +52,8 @@ public class ConfigurationView extends AnonymousVerticalLayout {
                         String.join(", ", configProperties.getAuthorizationServer().getSupportedScopes())
                 ),
                 readOnlyField(
-                        "Login page",
-                        configProperties.getAuthorizationServer().isFreeLogin() ? "Custom" : "Default"
+                        "Login",
+                        configProperties.getAuthorizationServer().isFreeLogin() ? "Free" : "Default"
                 )
         );
 
