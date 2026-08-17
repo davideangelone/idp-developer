@@ -1,4 +1,4 @@
-# Enterprise IDP – OAuth2 / OIDC
+# Developer IDP – OAuth2 / OIDC
 
 Identity Provider locale basato su **Spring Boot**, **Spring Security** e **Spring Authorization Server**, utilizzabile per simulare un Authorization Server OAuth2 / OpenID Connect durante lo sviluppo e il testing di applicazioni.
 
@@ -482,7 +482,7 @@ Il progetto può essere utilizzato per simulare localmente una architettura comp
                                │
                                ▼
                     ┌──────────────────────┐
-                    │   Enterprise IDP     │
+                    │   Developer IDP     │
                     │   localhost:9080     │
                     │                      │
                     │ Spring Authorization │

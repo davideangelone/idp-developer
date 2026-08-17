@@ -1,6 +1,6 @@
 spring:
   application:
-    name: enterprise-idp
+    name: developer-idp
 
   config:
     import:

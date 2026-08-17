@@ -12,10 +12,10 @@
     </parent>
 
     <groupId>com.idp</groupId>
-    <artifactId>enterprise-idp</artifactId>
+    <artifactId>developer-idp</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>enterprise-idp</name>
-    <description>Enterprise IdP for Developers</description>
+    <name>developer-idp</name>
+    <description>Oauth2 / OIDC IdP for Developers</description>
 
     <properties>
         <java.version>21</java.version>
@@ -139,7 +139,7 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
-                    <mainClass>com.idp.enterpriseidp.EnterpriseIdpApplication</mainClass>
+                    <mainClass>com.idp.developer.DeveloperIdpApplication</mainClass>
                 </configuration>
             </plugin>
             <plugin>
