@@ -43,13 +43,11 @@ public class UserJwtTokenCustomizer implements OAuth2TokenCustomizer<JwtEncoding
     @Override
     public void customize(JwtEncodingContext context) {
         var principal = context.getPrincipal();
-        if (principal == null || principal.getPrincipal() == null) {
+        if (null == principal) {
             return;
         }
 
-        Object userDetails = principal.getPrincipal();
-
-        if (userDetails instanceof CustomUserDetailsService.CustomUserDetails(User user)) {
+        if (principal.getPrincipal() instanceof CustomUserDetailsService.CustomUserDetails(User user)) {
             var userDto = userDtoMapper.toDto(user);
             addUserClaims(context, userDto);
         }
