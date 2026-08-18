@@ -2,7 +2,7 @@ package com.idp.developer.ui;
 
 import java.time.Duration;
 
-import com.idp.developer.properties.ConfigProperties;
+import com.idp.developer.service.AuthorizationServerService;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.html.H2;
@@ -13,7 +13,7 @@ import com.vaadin.flow.router.Route;
 @PageTitle("Configuration | Developer IDP")
 public class ConfigurationView extends AnonymousVerticalLayout {
 
-    public ConfigurationView(ConfigProperties configProperties) {
+    public ConfigurationView(AuthorizationServerService authorizationServerService) {
 
         setSpacing(true);
         setPadding(true);
@@ -23,15 +23,15 @@ public class ConfigurationView extends AnonymousVerticalLayout {
 
         FormLayout authorizationServer = new FormLayout();
         authorizationServer.add(
-                readOnlyField("Issuer", configProperties.getAuthorizationServer().getIssuerUrl()),
-                readOnlyField("Authorization Consent", String.valueOf(configProperties.getAuthorizationServer().isAuthorizationConsent())),
-                readOnlyField("Access Token TTL", formatDuration(configProperties.getAuthorizationServer().getAccessTokenTtl())),
-                readOnlyField("Refresh Token TTL", formatDuration(configProperties.getAuthorizationServer().getRefreshTokenTtl())),
-                readOnlyField("Authorization Code TTL", formatDuration(configProperties.getAuthorizationServer().getAuthorizationCodeTtl())),
-                readOnlyField("Reuse Refresh Tokens", String.valueOf(configProperties.getAuthorizationServer().isReuseRefreshTokens())),
-                readOnlyField("Supported scopes", configProperties.getAuthorizationServer().getSupportedScopes()),
-                readOnlyField("Supported grant types", configProperties.getAuthorizationServer().getSupportedGrantTypes()),
-                readOnlyField("Login", configProperties.getAuthorizationServer().isFreeLogin() ? "Free" : "Default")
+                readOnlyField("Issuer", authorizationServerService.getAuthorizationServer().issuerUrl()),
+                readOnlyField("Authorization Consent", String.valueOf(authorizationServerService.getAuthorizationServer().authorizationConsent())),
+                readOnlyField("Access Token TTL", formatDuration(authorizationServerService.getAuthorizationServer().accessTokenTtl())),
+                readOnlyField("Refresh Token TTL", formatDuration(authorizationServerService.getAuthorizationServer().refreshTokenTtl())),
+                readOnlyField("Authorization Code TTL", formatDuration(authorizationServerService.getAuthorizationServer().authorizationCodeTtl())),
+                readOnlyField("Reuse Refresh Tokens", String.valueOf(authorizationServerService.getAuthorizationServer().reuseRefreshTokens())),
+                readOnlyField("Supported scopes", authorizationServerService.getAuthorizationServer().supportedScopes()),
+                readOnlyField("Supported grant types", authorizationServerService.getAuthorizationServer().supportedGrantTypes()),
+                readOnlyField("Login", authorizationServerService.getAuthorizationServer().freeLogin() ? "Free" : "Default")
         );
 
         add(authorizationServer);

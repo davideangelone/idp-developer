@@ -34,6 +34,7 @@ public class StartupLogger implements ApplicationListener<ApplicationReadyEvent>
         logger.info("====================================================================");
         logger.info("Applicazione avviata con successo!");
         logger.info("UI Application URL: {}", baseUrl);
+        logger.info("H2 Console URL: {}/h2-console", baseUrl);
         logger.info("Current profile: {}", List.of(environment.getActiveProfiles()));
         logger.info("OpenID Connect Discovery Endpoint: {}/.well-known/openid-configuration", baseUrl);
         logger.info("====================================================================");

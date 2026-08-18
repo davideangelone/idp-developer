@@ -1,6 +1,6 @@
 package com.idp.developer.ui;
 
-import com.idp.developer.properties.ConfigProperties;
+import com.idp.developer.service.AuthorizationServerService;
 import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.html.H3;
@@ -14,9 +14,9 @@ public class DashboardView extends AnonymousVerticalLayout {
 
     private static final String OPENID_CONFIGURATION_URL = "/.well-known/openid-configuration";
 
-    public DashboardView(ConfigProperties configProperties) {
+    public DashboardView(AuthorizationServerService authorizationServerService) {
 
-        String openIdConfigurationUrl = configProperties.getAuthorizationServer().getIssuerUrl() + OPENID_CONFIGURATION_URL;
+        String openIdConfigurationUrl = authorizationServerService.getAuthorizationServer().issuerUrl() + OPENID_CONFIGURATION_URL;
         Anchor discoveryLink = new Anchor(
                 openIdConfigurationUrl,
                 "OpenID Connect Discovery"

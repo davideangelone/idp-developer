@@ -4,12 +4,14 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import com.idp.developer.entity.AuthorizationServer;
 import com.idp.developer.entity.OAuth2Client;
 import com.idp.developer.entity.OAuth2GrantType;
 import com.idp.developer.entity.OAuth2Scope;
 import com.idp.developer.entity.User;
 import com.idp.developer.properties.ConfigProperties;
 import com.idp.developer.properties.OAuth2ClientProperties;
+import com.idp.developer.repository.AuthorizationServerRepository;
 import com.idp.developer.repository.OAuth2ClientRepository;
 import com.idp.developer.repository.OAuth2GrantTypeRepository;
 import com.idp.developer.repository.OAuth2ScopeRepository;
@@ -24,80 +26,22 @@ public class DataInitializer {
 
     @Bean
     CommandLineRunner initData(
+            AuthorizationServerRepository authorizationServerRepository,
             UserRepository userRepository,
             OAuth2ClientRepository clientRepository,
             OAuth2ScopeRepository scopeRepository,
             OAuth2GrantTypeRepository grantTypeRepository,
             PasswordEncoder passwordEncoder,
-            ConfigProperties configProperties) {
-
-        return args -> {
-            initUsers(userRepository, passwordEncoder, configProperties);
-            initClients(clientRepository, scopeRepository, grantTypeRepository, configProperties);
-        };
-    }
-
-    private void initUsers(
-            UserRepository userRepository,
-            PasswordEncoder passwordEncoder,
-            ConfigProperties configProperties) {
-
-        configProperties.getUsers().forEach(userProperties -> {
-
-            User user = userRepository
-                    .findByUsername(userProperties.getUsername())
-                    .orElseGet(User::new);
-
-            user.setUsername(userProperties.getUsername());
-            user.setPassword(passwordEncoder.encode(userProperties.getPassword()));
-            user.setFirstName(userProperties.getFirstName());
-            user.setLastName(userProperties.getLastName());
-            user.setEmail(userProperties.getEmail());
-            user.setAddress(userProperties.getAddress());
-            user.setPhoneNumber(userProperties.getPhoneNumber());
-            user.setRoles(userProperties.getRoles());
-            user.setGroups(userProperties.getGroups());
-            user.setEnabled(true);
-            user.setEmailVerified(true);
-
-            userRepository.save(user);
-        });
-    }
-
-    private void initClients(
-            OAuth2ClientRepository clientRepository,
-            OAuth2ScopeRepository scopeRepository,
-            OAuth2GrantTypeRepository grantTypeRepository,
             ConfigProperties configProperties) {
 
         Map<String, OAuth2Scope> scopes = initScopes(scopeRepository, configProperties);
         Map<String, OAuth2GrantType> grantTypes = initGrantTypes(grantTypeRepository, configProperties);
 
-        for (Map.Entry<String, OAuth2ClientProperties> entry : configProperties.getOauth2Clients().entrySet()) {
-            OAuth2ClientProperties clientProperties = entry.getValue();
-            String clientName = entry.getKey();
-
-            OAuth2Client client = clientRepository
-                    .findByClientId(clientProperties.getClientId())
-                    .orElseGet(OAuth2Client::new);
-
-            client.setName(clientName);
-            client.setClientId(clientProperties.getClientId());
-            client.setClientSecret(clientProperties.getClientSecret());
-            client.setClientUrl(clientProperties.getClientUrl());
-            client.setRedirectUris(clientProperties.getRedirectUris());
-            client.setPostLogoutRedirectUris(clientProperties.getPostLogoutRedirectUris());
-
-            client.setScopes(clientProperties.getScopes().stream()
-                    .map(name -> getScope(scopes, name, client.getClientId()))
-                    .collect(Collectors.toSet()));
-
-            client.setGrantTypes(clientProperties.getAuthorizationGrantTypes().stream()
-                    .map(name -> getGrantType(grantTypes, name, client.getClientId()))
-                    .collect(Collectors.toSet()));
-
-            clientRepository.save(client);
-        }
+        return args -> {
+            initAuthorizationServer(scopes, grantTypes, authorizationServerRepository, configProperties);
+            initUsers(userRepository, passwordEncoder, configProperties);
+            initClients(scopes, grantTypes, clientRepository, configProperties);
+        };
     }
 
     private Map<String, OAuth2Scope> initScopes(OAuth2ScopeRepository scopeRepository,
@@ -128,6 +72,101 @@ public class DataInitializer {
                         OAuth2GrantType::getName,
                         Function.identity()
                 ));
+    }
+
+    private void initAuthorizationServer(
+            Map<String, OAuth2Scope> scopes,
+            Map<String, OAuth2GrantType> grantTypes,
+            AuthorizationServerRepository authorizationServerRepository,
+            ConfigProperties configProperties) {
+
+        var properties = configProperties.getAuthorizationServer();
+
+        AuthorizationServer authorizationServer = authorizationServerRepository
+                .findFirstByOrderByIdAsc()
+                .orElseGet(AuthorizationServer::new);
+
+        authorizationServer.setIssuerUrl(properties.getIssuerUrl());
+        authorizationServer.setAuthorizationConsent(properties.isAuthorizationConsent());
+        authorizationServer.setAccessTokenTtl(properties.getAccessTokenTtl());
+        authorizationServer.setRefreshTokenTtl(properties.getRefreshTokenTtl());
+        authorizationServer.setAuthorizationCodeTtl(properties.getAuthorizationCodeTtl());
+        authorizationServer.setReuseRefreshTokens(properties.isReuseRefreshTokens());
+        authorizationServer.setFreeLogin(properties.isFreeLogin());
+
+        authorizationServer.setSupportedScopes(
+                properties.getSupportedScopes().stream()
+                        .map(scopes::get)
+                        .collect(Collectors.toSet())
+        );
+
+        authorizationServer.setSupportedGrantTypes(
+                properties.getSupportedGrantTypes().stream()
+                        .map(grantTypes::get)
+                        .collect(Collectors.toSet())
+        );
+
+        authorizationServerRepository.save(authorizationServer);
+    }
+
+    private void initUsers(
+            UserRepository userRepository,
+            PasswordEncoder passwordEncoder,
+            ConfigProperties configProperties) {
+
+        configProperties.getUsers().forEach(userProperties -> {
+
+            User user = userRepository
+                    .findByUsername(userProperties.getUsername())
+                    .orElseGet(User::new);
+
+            user.setUsername(userProperties.getUsername());
+            user.setPassword(passwordEncoder.encode(userProperties.getPassword()));
+            user.setFirstName(userProperties.getFirstName());
+            user.setLastName(userProperties.getLastName());
+            user.setEmail(userProperties.getEmail());
+            user.setAddress(userProperties.getAddress());
+            user.setPhoneNumber(userProperties.getPhoneNumber());
+            user.setRoles(userProperties.getRoles());
+            user.setGroups(userProperties.getGroups());
+            user.setEnabled(true);
+            user.setEmailVerified(true);
+
+            userRepository.save(user);
+        });
+    }
+
+    private void initClients(
+            Map<String, OAuth2Scope> scopes,
+            Map<String, OAuth2GrantType> grantTypes,
+            OAuth2ClientRepository clientRepository,
+            ConfigProperties configProperties) {
+
+        for (Map.Entry<String, OAuth2ClientProperties> entry : configProperties.getOauth2Clients().entrySet()) {
+            OAuth2ClientProperties clientProperties = entry.getValue();
+            String clientName = entry.getKey();
+
+            OAuth2Client client = clientRepository
+                    .findByClientId(clientProperties.getClientId())
+                    .orElseGet(OAuth2Client::new);
+
+            client.setName(clientName);
+            client.setClientId(clientProperties.getClientId());
+            client.setClientSecret(clientProperties.getClientSecret());
+            client.setClientUrl(clientProperties.getClientUrl());
+            client.setRedirectUris(clientProperties.getRedirectUris());
+            client.setPostLogoutRedirectUris(clientProperties.getPostLogoutRedirectUris());
+
+            client.setScopes(clientProperties.getScopes().stream()
+                    .map(name -> getScope(scopes, name, client.getClientId()))
+                    .collect(Collectors.toSet()));
+
+            client.setGrantTypes(clientProperties.getAuthorizationGrantTypes().stream()
+                    .map(name -> getGrantType(grantTypes, name, client.getClientId()))
+                    .collect(Collectors.toSet()));
+
+            clientRepository.save(client);
+        }
     }
 
     private OAuth2Scope getScope(Map<String, OAuth2Scope> scopes, String name, String clientId) {
