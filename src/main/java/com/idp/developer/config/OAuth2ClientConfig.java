@@ -32,7 +32,7 @@ public class OAuth2ClientConfig {
     private RegisteredClient createRegisteredClient(ConfigProperties configProperties, OAuth2ClientProperties oauth2ClientProperties) {
         RegisteredClient registeredClient = RegisteredClient.withId(UUID.randomUUID().toString())
                 .clientId(oauth2ClientProperties.getClientId())
-                .clientSecret("{noop}" + oauth2ClientProperties.getClientSecret())
+                .clientSecret(oauth2ClientProperties.getClientSecret())
                 .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
                 .authorizationGrantTypes(grantTypes ->
                         grantTypes.addAll(oauth2ClientProperties.getAuthorizationGrantTypes().stream()

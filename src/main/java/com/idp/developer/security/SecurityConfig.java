@@ -21,7 +21,11 @@ public class SecurityConfig {
 
     @Bean
     public PasswordEncoder passwordEncoder(ConfigProperties configProperties) {
-        return CustomPasswordEncoder.getInstance(configProperties.getAuthorizationServer().isFreeLogin());
+        PasswordEncoder encoder = new PlainTextPasswordEncoder();
+        if (configProperties.getAuthorizationServer().isFreeLogin()) {
+            encoder = new FreeLoginPasswordEncoder(encoder);
+        }
+        return encoder;
     }
 
     @Bean

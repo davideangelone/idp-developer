@@ -12,16 +12,13 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 public class DataInitializer {
 
     @Bean
-    CommandLineRunner initUsers(
-            UserRepository userRepository,
-            PasswordEncoder passwordEncoder,
-            ConfigProperties configProperties) {
+    CommandLineRunner initUsers(UserRepository userRepository,
+                                PasswordEncoder passwordEncoder,
+                                ConfigProperties configProperties) {
 
         return args -> configProperties.getUsers().forEach(userProperties -> {
 
-            User user = userRepository.findByUsername(userProperties.getUsername())
-                    .orElseGet(User::new);
-
+            User user = userRepository.findByUsername(userProperties.getUsername()).orElseGet(User::new);
             user.setUsername(userProperties.getUsername());
             user.setPassword(passwordEncoder.encode(userProperties.getPassword()));
             user.setFirstName(userProperties.getFirstName());

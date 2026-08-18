@@ -9,7 +9,6 @@ import com.idp.developer.mapper.UserDtoMapper;
 import com.idp.developer.model.UserDto;
 import com.idp.developer.properties.ConfigProperties;
 import com.idp.developer.service.CustomUserDetailsService;
-import com.idp.developer.utils.UserUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.server.authorization.token.JwtEncodingContext;
@@ -23,7 +22,7 @@ public class UserJwtTokenCustomizer implements OAuth2TokenCustomizer<JwtEncoding
     private static final Map<String, Function<UserDto, Object>> USER_PROPERTIES = Map.of(
             "roles", UserDto::roles,
             "groups", UserDto::groups,
-            "fullName", UserUtils::getFullName,
+            "fullName", UserDto::getFullName,
             "firstName", UserDto::firstName,
             "lastName", UserDto::lastName,
             "username", UserDto::username,

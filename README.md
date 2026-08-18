@@ -2,7 +2,13 @@
 
 Identity Provider locale basato su **Spring Boot**, **Spring Security** e **Spring Authorization Server**, utilizzabile per simulare un Authorization Server OAuth2 / OpenID Connect durante lo sviluppo e il testing di applicazioni.
 
-> **Nota:** questo progetto è destinato esclusivamente a sviluppo, test e Proof of Concept. ***Non è adatto ad ambienti di produzione***.
+E' disponibile una console UI all'indirizzo:
+
+```text
+http://localhost:9080
+```
+
+> **Nota:** questo progetto è destinato esclusivamente a sviluppo e test. ***Non è adatto ad ambienti di produzione***.
 
 ---
 
@@ -315,15 +321,11 @@ reuseRefreshTokens(false)
 
 ---
 
-# Utente di test
+# Utenti di test
 
-Il database H2 viene utilizzato per memorizzare gli utenti dell'IdP.
+Gli utenti di test vengono memorizzati nel database H2 e sono consultabili dalla console UI.
 
-È possibile utilizzare un utente di test configurato nel database dell'applicazione.
-
-Le credenziali utilizzate dal progetto sono esclusivamente credenziali di sviluppo.
-
-> Le credenziali presenti nel repository sono da considerarsi credenziali di test e non devono essere riutilizzate in ambienti reali.
+> Le credenziali sono registrate in chiaro e sono da considerarsi solo *a scopo di test e sviluppo*.
 
 ---
 

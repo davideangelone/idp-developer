@@ -11,7 +11,6 @@ import com.idp.developer.properties.ClaimsProperties;
 import com.idp.developer.properties.ConfigProperties;
 import com.idp.developer.security.UserJwtTokenCustomizer;
 import com.idp.developer.service.CustomUserDetailsService;
-import com.idp.developer.utils.UserUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -126,7 +125,7 @@ class OAuth2TokenCustomizerTest {
         );
 
         assertThat(valueCaptor.getAllValues()).containsExactlyInAnyOrder(
-                UserUtils.getFullName(userDto),
+                userDto.getFullName(),
                 userDto.firstName(),
                 userDto.lastName(),
                 userDto.roles(),
