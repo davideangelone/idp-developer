@@ -20,7 +20,7 @@ public class AnonymousVerticalLayout extends VerticalLayout {
     }
 
     protected TextField readOnlyField(String label, Collection<String> values) {
-        return readOnlyField(label, String.join(",", values));
+        return readOnlyField(label, String.join(", ", values));
     }
 
     protected TextArea readOnlyTextArea(String label, List<String> values) {

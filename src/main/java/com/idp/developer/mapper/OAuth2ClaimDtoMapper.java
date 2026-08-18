@@ -1,5 +1,7 @@
 package com.idp.developer.mapper;
 
+import java.util.Optional;
+
 import com.idp.developer.entity.OAuth2Claim;
 import com.idp.developer.entity.OAuth2Scope;
 import com.idp.developer.model.OAuth2ClaimDto;
@@ -11,6 +13,6 @@ public interface OAuth2ClaimDtoMapper {
     OAuth2ClaimDto toDto(OAuth2Claim entity);
 
     default String map(OAuth2Scope scope) {
-        return scope.getName();
+        return Optional.ofNullable(scope).map(OAuth2Scope::getName).orElse(null);
     }
 }

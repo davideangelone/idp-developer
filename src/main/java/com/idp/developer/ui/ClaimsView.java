@@ -1,8 +1,11 @@
 package com.idp.developer.ui;
 
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
-import com.idp.developer.properties.ConfigProperties;
+import com.idp.developer.model.OAuth2ClaimDto;
+import com.idp.developer.service.OAuth2ClaimService;
 import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -13,7 +16,7 @@ import com.vaadin.flow.router.Route;
 @PageTitle("Scopes - Claims | Developer IDP")
 public class ClaimsView extends AnonymousVerticalLayout {
 
-    public ClaimsView(ConfigProperties configProperties) {
+    public ClaimsView(OAuth2ClaimService claimService) {
 
         setSpacing(true);
         setPadding(true);
@@ -23,16 +26,27 @@ public class ClaimsView extends AnonymousVerticalLayout {
         add(new H2("Always"));
 
         VerticalLayout alwaysClaims = new VerticalLayout();
-        alwaysClaims.add(readOnlyField(null, configProperties.getClaims().getAlways().keySet()));
+
+        List<String> alwaysClaimsList = claimService.getAlwaysClaims()
+                .stream()
+                .map(OAuth2ClaimDto::name)
+                .toList();
+        alwaysClaims.add(readOnlyField(null, alwaysClaimsList));
 
         add(alwaysClaims);
 
         add(new H2("Scoped"));
 
         VerticalLayout scopeClaims = new VerticalLayout();
-
-        for (Map.Entry<String, Map<String, String>> scopeEntry : configProperties.getClaims().getScopes().entrySet()) {
-            scopeClaims.add(readOnlyField(scopeEntry.getKey(), scopeEntry.getValue().keySet()));
+        Map<String, List<OAuth2ClaimDto>> scopedClaimsMap = claimService.getScopedClaims()
+                                                                                .stream()
+                                                                                .collect(Collectors.groupingBy(OAuth2ClaimDto::scope));
+        for (Map.Entry<String, List<OAuth2ClaimDto>> entry : scopedClaimsMap.entrySet()) {
+            scopeClaims.add(readOnlyField(entry.getKey(), entry.getValue().stream()
+                                                                            .map(OAuth2ClaimDto::name)
+                                                                            .toList()
+                                         )
+                            );
         }
 
         add(scopeClaims);

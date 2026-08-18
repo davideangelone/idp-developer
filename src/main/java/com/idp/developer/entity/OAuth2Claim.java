@@ -21,11 +21,14 @@ public class OAuth2Claim {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(optional = false)
+    @ManyToOne
     @JoinColumn(name = "scope_id")
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     private OAuth2Scope scope;
+
+    @Column(nullable = false)
+    private boolean always;
 
     @Column(nullable = false)
     private String name;

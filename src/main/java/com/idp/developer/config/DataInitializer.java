@@ -37,10 +37,12 @@ public class DataInitializer {
             PasswordEncoder passwordEncoder,
             ConfigProperties configProperties) {
 
-        Map<String, OAuth2Scope> scopes = initScopes(scopeRepository, claimRepository, configProperties);
-        Map<String, OAuth2GrantType> grantTypes = initGrantTypes(grantTypeRepository, configProperties);
-
         return args -> {
+            Map<String, OAuth2Scope> scopes = initScopes(scopeRepository, configProperties);
+            Map<String, OAuth2GrantType> grantTypes = initGrantTypes(grantTypeRepository, configProperties);
+
+            initAlwaysClaims(claimRepository, configProperties);
+            initScopeClaims(scopeRepository, claimRepository, configProperties);
             initAuthorizationServer(scopes, grantTypes, authorizationServerRepository, configProperties);
             initUsers(userRepository, passwordEncoder, configProperties);
             initClients(scopes, grantTypes, clientRepository, configProperties);
@@ -48,7 +50,6 @@ public class DataInitializer {
     }
 
     private Map<String, OAuth2Scope> initScopes(OAuth2ScopeRepository scopeRepository,
-                                                OAuth2ClaimRepository claimRepository,
                                                 ConfigProperties configProperties) {
 
         Map<String, OAuth2Scope> scopes = new HashMap<>();
@@ -60,26 +61,58 @@ public class DataInitializer {
                 scope = new OAuth2Scope();
                 scope.setName(name);
                 scope = scopeRepository.save(scope);
-
-                Map<String, String> scopeClaims = configProperties.getClaims().getScopes().get(name);
-
-                if (scopeClaims != null) {
-                    for (Map.Entry<String, String> claimEntry : scopeClaims.entrySet()) {
-
-                        OAuth2Claim claim = new OAuth2Claim();
-                        claim.setScope(scope);
-                        claim.setName(claimEntry.getKey());
-                        claim.setUserProperty(claimEntry.getValue());
-
-                        claimRepository.save(claim);
-                    }
-                }
             }
 
             scopes.put(scope.getName(), scope);
         }
 
         return scopes;
+    }
+
+    private void initAlwaysClaims(
+            OAuth2ClaimRepository claimRepository,
+            ConfigProperties configProperties) {
+
+        for (Map.Entry<String, String> entry : configProperties.getClaims().getAlways().entrySet()) {
+
+            OAuth2Claim claim = claimRepository
+                    .findByScopeIsNullAndName(entry.getKey())
+                    .orElseGet(OAuth2Claim::new);
+
+            claim.setScope(null);
+            claim.setAlways(true);
+            claim.setName(entry.getKey());
+            claim.setUserProperty(entry.getValue());
+
+            claimRepository.save(claim);
+        }
+    }
+
+    private void initScopeClaims(OAuth2ScopeRepository scopeRepository,
+                                 OAuth2ClaimRepository claimRepository,
+                                 ConfigProperties configProperties) {
+
+        for (Map.Entry<String, Map<String, String>> scopeClaims : configProperties.getClaims().getScopes().entrySet()) {
+
+            OAuth2Scope scope = scopeRepository.findByName(scopeClaims.getKey());
+            if (scope == null) {
+                continue;
+            }
+
+            for (Map.Entry<String, String> claimEntry : scopeClaims.getValue().entrySet()) {
+
+                OAuth2Claim claim = claimRepository
+                        .findByScopeAndName(scope, claimEntry.getKey())
+                        .orElseGet(OAuth2Claim::new);
+
+                claim.setScope(scope);
+                claim.setAlways(false);
+                claim.setName(claimEntry.getKey());
+                claim.setUserProperty(claimEntry.getValue());
+
+                claimRepository.save(claim);
+            }
+        }
     }
 
     private Map<String, OAuth2GrantType> initGrantTypes(OAuth2GrantTypeRepository grantTypeRepository,
