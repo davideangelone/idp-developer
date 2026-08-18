@@ -13,12 +13,10 @@ import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Table;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "authorization_server")
 @Data
-@NoArgsConstructor
 public class AuthorizationServer {
 
     @Id

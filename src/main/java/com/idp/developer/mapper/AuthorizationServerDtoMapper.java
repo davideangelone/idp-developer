@@ -10,7 +10,7 @@ import org.mapstruct.MappingConstants;
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 public interface AuthorizationServerDtoMapper {
 
-    AuthorizationServerDto toDto(AuthorizationServer authorizationServer);
+    AuthorizationServerDto toDto(AuthorizationServer entity);
 
     default String map(OAuth2Scope scope) {
         return scope.getName();

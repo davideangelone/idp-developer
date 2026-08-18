@@ -7,5 +7,5 @@ import org.mapstruct.MappingConstants;
 
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 public interface UserDtoMapper {
-    UserDto toDto(User user);
+    UserDto toDto(User entity);
 }

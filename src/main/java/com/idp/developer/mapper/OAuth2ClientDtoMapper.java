@@ -9,7 +9,7 @@ import org.mapstruct.MappingConstants;
 
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 public interface OAuth2ClientDtoMapper {
-    OAuth2ClientDto toDto(OAuth2Client client);
+    OAuth2ClientDto toDto(OAuth2Client entity);
 
     default String map(OAuth2Scope scope) {
         return scope.getName();

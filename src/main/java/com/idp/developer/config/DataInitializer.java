@@ -1,10 +1,11 @@
 package com.idp.developer.config;
 
+import java.util.HashMap;
 import java.util.Map;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import com.idp.developer.entity.AuthorizationServer;
+import com.idp.developer.entity.OAuth2Claim;
 import com.idp.developer.entity.OAuth2Client;
 import com.idp.developer.entity.OAuth2GrantType;
 import com.idp.developer.entity.OAuth2Scope;
@@ -12,6 +13,7 @@ import com.idp.developer.entity.User;
 import com.idp.developer.properties.ConfigProperties;
 import com.idp.developer.properties.OAuth2ClientProperties;
 import com.idp.developer.repository.AuthorizationServerRepository;
+import com.idp.developer.repository.OAuth2ClaimRepository;
 import com.idp.developer.repository.OAuth2ClientRepository;
 import com.idp.developer.repository.OAuth2GrantTypeRepository;
 import com.idp.developer.repository.OAuth2ScopeRepository;
@@ -30,11 +32,12 @@ public class DataInitializer {
             UserRepository userRepository,
             OAuth2ClientRepository clientRepository,
             OAuth2ScopeRepository scopeRepository,
+            OAuth2ClaimRepository claimRepository,
             OAuth2GrantTypeRepository grantTypeRepository,
             PasswordEncoder passwordEncoder,
             ConfigProperties configProperties) {
 
-        Map<String, OAuth2Scope> scopes = initScopes(scopeRepository, configProperties);
+        Map<String, OAuth2Scope> scopes = initScopes(scopeRepository, claimRepository, configProperties);
         Map<String, OAuth2GrantType> grantTypes = initGrantTypes(grantTypeRepository, configProperties);
 
         return args -> {
@@ -45,33 +48,56 @@ public class DataInitializer {
     }
 
     private Map<String, OAuth2Scope> initScopes(OAuth2ScopeRepository scopeRepository,
+                                                OAuth2ClaimRepository claimRepository,
                                                 ConfigProperties configProperties) {
 
-        return configProperties.getAuthorizationServer()
-                .getSupportedScopes()
-                .stream()
-                .map(name -> scopeRepository
-                        .findByName(name)
-                        .orElseGet(() -> scopeRepository.save(new OAuth2Scope(null, name))))
-                .collect(Collectors.toMap(
-                        OAuth2Scope::getName,
-                        Function.identity()
-                ));
+        Map<String, OAuth2Scope> scopes = new HashMap<>();
+
+        for (String name : configProperties.getAuthorizationServer().getSupportedScopes()) {
+
+            OAuth2Scope scope = scopeRepository.findByName(name);
+            if (null == scope) {
+                scope = new OAuth2Scope();
+                scope.setName(name);
+                scope = scopeRepository.save(scope);
+
+                Map<String, String> scopeClaims = configProperties.getClaims().getScopes().get(name);
+
+                if (scopeClaims != null) {
+                    for (Map.Entry<String, String> claimEntry : scopeClaims.entrySet()) {
+
+                        OAuth2Claim claim = new OAuth2Claim();
+                        claim.setScope(scope);
+                        claim.setName(claimEntry.getKey());
+                        claim.setUserProperty(claimEntry.getValue());
+
+                        claimRepository.save(claim);
+                    }
+                }
+            }
+
+            scopes.put(scope.getName(), scope);
+        }
+
+        return scopes;
     }
 
     private Map<String, OAuth2GrantType> initGrantTypes(OAuth2GrantTypeRepository grantTypeRepository,
                                                         ConfigProperties configProperties) {
 
-        return configProperties.getAuthorizationServer()
-                .getSupportedGrantTypes()
-                .stream()
-                .map(name -> grantTypeRepository
-                        .findByName(name)
-                        .orElseGet(() -> grantTypeRepository.save(new OAuth2GrantType(null, name))))
-                .collect(Collectors.toMap(
-                        OAuth2GrantType::getName,
-                        Function.identity()
-                ));
+        Map<String, OAuth2GrantType> grantTypes = new HashMap<>();
+
+        for (String name : configProperties.getAuthorizationServer().getSupportedGrantTypes()) {
+            OAuth2GrantType grantType = grantTypeRepository.findByName(name);
+            if (null == grantType) {
+                grantType = new OAuth2GrantType();
+                grantType.setName(name);
+                grantType = grantTypeRepository.save(grantType);
+            }
+            grantTypes.put(grantType.getName(), grantType);
+        }
+
+        return grantTypes;
     }
 
     private void initAuthorizationServer(
