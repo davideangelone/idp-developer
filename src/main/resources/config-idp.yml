@@ -6,6 +6,7 @@ authorization-server:
   authorization-code-ttl: 5m
   reuse-refresh-tokens: false
   supported-scopes: [openid, profile, email, address, phone]
+  supported-grant-types: [authorization_code, refresh_token, client_credentials]
   free-login: true
 
 jwt:

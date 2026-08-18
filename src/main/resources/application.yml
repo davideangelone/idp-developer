@@ -18,11 +18,20 @@ spring:
       minimum-idle: 2
       connection-timeout: 30000
 
+  h2:
+    console:
+      enabled: true
+      settings:
+        web-allow-others: true
+
   jpa:
     hibernate:
       ddl-auto: update
     show-sql: false
     open-in-view: false
+
+vaadin:
+  exclude-urls: /h2-console/**
 
 server:
   port: 9080

@@ -12,6 +12,7 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AuthorizeHttpRequestsConfigurer;
+import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
@@ -40,6 +41,8 @@ public class SecurityConfig {
 
         boolean freeLogin = configProperties.getAuthorizationServer().isFreeLogin();
 
+        enableH2ConsoleAccess(http);
+
         if (freeLogin) {
             http.with(VaadinSecurityConfigurer.vaadin(), configurer ->
                     configurer
@@ -56,5 +59,14 @@ public class SecurityConfig {
         }
 
         return http.build();
+    }
+
+    private void enableH2ConsoleAccess(HttpSecurity http) {
+        http
+            .csrf(csrf -> csrf.ignoringRequestMatchers("/h2-console/**")) //NOSONAR
+                    .authorizeHttpRequests(auth -> auth
+                    .requestMatchers("/h2-console/**").permitAll()
+            )
+            .headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin));
     }
 }

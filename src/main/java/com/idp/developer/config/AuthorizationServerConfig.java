@@ -34,8 +34,12 @@ public class AuthorizationServerConfig {
                                                     builder.scopes(scopes -> {
                                                                 scopes.clear();
                                                                 scopes.addAll(configProperties.getAuthorizationServer().getSupportedScopes());
-                                                            }
-                                                    ))
+                                                            })
+                                                            .grantTypes(grantTypes -> {
+                                                                grantTypes.clear();
+                                                                grantTypes.addAll(configProperties.getAuthorizationServer().getSupportedGrantTypes());
+                                                            })
+                                            )
                                     )
                             );
                 })

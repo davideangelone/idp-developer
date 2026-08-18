@@ -11,7 +11,6 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -21,7 +20,6 @@ import org.hibernate.annotations.UpdateTimestamp;
         @UniqueConstraint(columnNames = "email")
 })
 @Data
-@NoArgsConstructor
 public class User {
 
     @Id

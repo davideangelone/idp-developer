@@ -30,6 +30,7 @@ public class ConfigurationView extends AnonymousVerticalLayout {
                 readOnlyField("Authorization Code TTL", formatDuration(configProperties.getAuthorizationServer().getAuthorizationCodeTtl())),
                 readOnlyField("Reuse Refresh Tokens", String.valueOf(configProperties.getAuthorizationServer().isReuseRefreshTokens())),
                 readOnlyField("Supported scopes", configProperties.getAuthorizationServer().getSupportedScopes()),
+                readOnlyField("Supported grant types", configProperties.getAuthorizationServer().getSupportedGrantTypes()),
                 readOnlyField("Login", configProperties.getAuthorizationServer().isFreeLogin() ? "Free" : "Default")
         );
 
