@@ -54,10 +54,10 @@ public class OAuth2ClientService {
         OAuth2Client client = oAuth2ClientRepository.findById(dto.id())
                 .orElseThrow(() -> new IllegalArgumentException("OAuth2 client not found: " + dto.id()));
 
-        client.setName(dto.name());
         client.setClientId(dto.clientId());
-        client.setClientUrl(dto.clientUrl());
         client.setClientSecret(dto.clientSecret());
+        client.setDescription(dto.description());
+        client.setClientUrl(dto.clientUrl());
         client.setRedirectUris(dto.redirectUris());
         client.setPostLogoutRedirectUris(dto.postLogoutRedirectUris());
         client.setScopes(oAuth2ScopeRepository.findByNameIn(dto.scopes()));

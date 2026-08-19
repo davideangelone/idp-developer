@@ -16,6 +16,7 @@ import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.combobox.MultiSelectComboBox;
 import com.vaadin.flow.component.details.Details;
 import com.vaadin.flow.component.formlayout.FormLayout;
+import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
@@ -46,11 +47,28 @@ public class ClientsView extends AnonymousVerticalLayout {
                 .forEach(oAuth2ClientDto -> add(createDetails(authorizationServerService.getAuthorizationServer(), oAuth2ClientService, oAuth2ClientDto)));
     }
 
-    private Details createDetails(AuthorizationServerDto authorizationServer, OAuth2ClientService oAuth2ClientService, OAuth2ClientDto oAuth2ClientDto) {
-        Span summary = new Span(oAuth2ClientDto.name());
-        summary.getStyle().setFontWeight("bold");
+    private Details createDetails(AuthorizationServerDto authorizationServer,
+                                  OAuth2ClientService oAuth2ClientService,
+                                  OAuth2ClientDto oAuth2ClientDto) {
 
-        return new Details(summary, createClientPanel(authorizationServer, oAuth2ClientService, oAuth2ClientDto));
+        Span title = new Span(oAuth2ClientDto.clientId());
+        title.getStyle().setFontWeight("bold");
+
+        Span subtitle = new Span(oAuth2ClientDto.description());
+        subtitle.getStyle()
+                .set("font-style", "italic")
+                .setFontSize("var(--lumo-font-size-s)");
+
+        Div summary = new Div();
+        summary.add(title, subtitle);
+        summary.getStyle()
+                .set("display", "flex")
+                .set("flex-direction", "column")
+                .set("gap", "0");
+
+        return new Details(
+                summary, createClientPanel(authorizationServer, oAuth2ClientService, oAuth2ClientDto, subtitle)
+        );
     }
 
     private String formatDuration(Duration duration) {
@@ -93,17 +111,28 @@ public class ClientsView extends AnonymousVerticalLayout {
         }
     }
 
-    private FormLayout createClientPanel(AuthorizationServerDto authorizationServerDto, OAuth2ClientService oAuth2ClientService, OAuth2ClientDto oAuth2ClientDto) {
+    private FormLayout createClientPanel(AuthorizationServerDto authorizationServerDto,
+                                         OAuth2ClientService oAuth2ClientService,
+                                         OAuth2ClientDto oAuth2ClientDto,
+                                         Span subtitle) {
 
         FormLayout layout = new FormLayout();
 
         TextField clientId = readOnlyField("Client ID", oAuth2ClientDto.clientId());
 
+        PasswordField clientSecret = new PasswordField("Client Secret");
+        clientSecret.setValue(oAuth2ClientDto.clientSecret());
+
         TextField clientUrl = new TextField("Client URL");
         clientUrl.setValue(oAuth2ClientDto.clientUrl());
 
-        PasswordField clientSecret = new PasswordField("Client Secret");
-        clientSecret.setValue(oAuth2ClientDto.clientSecret());
+        TextField description = new TextField("Description");
+        description.setValue(oAuth2ClientDto.description());
+        description.setValueChangeMode(ValueChangeMode.EAGER);
+        description.addValueChangeListener(event ->
+                subtitle.setText(event.getValue())
+        );
+        layout.setColspan(description, 2);
 
         MultiSelectComboBox<String> authenticationMethods = new MultiSelectComboBox<>("Client Authentication Methods");
         authenticationMethods.setItems(authorizationServerDto.supportedAuthenticationMethods());
@@ -142,10 +171,10 @@ public class ClientsView extends AnonymousVerticalLayout {
             try {
                 OAuth2ClientUpdateDto updateDto = new OAuth2ClientUpdateDto(
                         oAuth2ClientDto.id(),
-                        oAuth2ClientDto.name(),
                         oAuth2ClientDto.clientId(),
-                        clientUrl.getValue(),
                         clientSecret.getValue(),
+                        description.getValue(),
+                        clientUrl.getValue(),
                         parseLines(redirectUris.getValue()),
                         parseLines(postLogoutRedirectUris.getValue()),
                         scopes.getValue(),
@@ -161,30 +190,35 @@ public class ClientsView extends AnonymousVerticalLayout {
 
                 oAuth2ClientService.updateOAuth2Client(updateDto);
 
-                showClientUpdatedNotification(oAuth2ClientDto.name());
-                log.info("Client {} aggiornato", oAuth2ClientDto.name());
+                showClientUpdatedNotification(oAuth2ClientDto.clientId());
+                log.info("Client {} aggiornato", oAuth2ClientDto.clientId());
             } catch (Exception e) {
-                log.error("Errore durante l'aggiornamento del client {}", oAuth2ClientDto.name(), e);
-                showClientUpdateErrorNotification(oAuth2ClientDto.name());
+                log.error("Errore durante l'aggiornamento del client {}", oAuth2ClientDto.clientId(), e);
+                showClientUpdateErrorNotification(oAuth2ClientDto.clientId());
             }
         });
 
 
         layout.add(
                 clientId,
-                clientUrl,
                 clientSecret,
-                authenticationMethods,
+                description,
+                clientUrl,
                 redirectUris,
                 postLogoutRedirectUris,
+                new Span(),
                 scopes,
+                authenticationMethods,
                 authorizationGrantTypes,
+                new Span(),
                 authorizationConsent,
                 requireProofKey,
+                reuseRefreshTokens,
+                new Span(),
                 accessTokenTtl,
                 refreshTokenTtl,
                 authorizationCodeTtl,
-                reuseRefreshTokens,
+                new Span(),
                 saveButton
         );
 

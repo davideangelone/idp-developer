@@ -231,15 +231,12 @@ public class DataInitializer {
             OAuth2ClientRepository clientRepository,
             ConfigProperties configProperties) {
 
-        for (Map.Entry<String, OAuth2ClientProperties> entry : configProperties.getOauth2Clients().entrySet()) {
-            OAuth2ClientProperties clientProperties = entry.getValue();
-            String clientName = entry.getKey();
-
+        for (OAuth2ClientProperties clientProperties : configProperties.getOauth2Clients()) {
             OAuth2Client client = clientRepository
                     .findByClientId(clientProperties.getClientId())
                     .orElseGet(OAuth2Client::new);
 
-            client.setName(clientName);
+            client.setDescription(clientProperties.getDescription());
             client.setClientId(clientProperties.getClientId());
             client.setClientSecret(clientProperties.getClientSecret());
 

@@ -6,9 +6,9 @@ import java.util.Set;
 
 public record OAuth2ClientDto(
         Long id,
-        String name,
         String clientId,
         String clientSecret,
+        String description,
         Set<String> clientAuthenticationMethods,
         String clientUrl,
         List<String> redirectUris,

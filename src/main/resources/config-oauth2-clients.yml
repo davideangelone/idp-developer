@@ -1,14 +1,14 @@
 oauth2-clients:
-  first-client:
-    client-url: http://localhost:8080
-    client-id: oidc-client
+  - client-id: oidc-client
     client-secret: secret
+    description: client test di default
+    client-url: http://localhost:8080
     client-authentication-methods: [client_secret_basic]
     redirect-uris:
-      - ${oauth2-clients.first-client.client-url}/login/oauth2/code/${oauth2-clients.first-client.client-id}
+      - http://localhost:8080/login/oauth2/code/oidc-client
       - https://oauth.pstmn.io/v1/callback
     post-logout-redirect-uris:
-      - ${oauth2-clients.first-client.client-url}/
+      - http://localhost:8080/
     scopes: [openid, profile, email, address, phone]
     authorization-grant-types: [authorization_code, refresh_token, client_credentials]
     authorization-consent: true
@@ -18,15 +18,15 @@ oauth2-clients:
     authorization-code-ttl: 5m
     reuse-refresh-tokens: false
 
-  second-client:
-    client-url: http://localhost:8081
-    client-id: test-client
+  - client-id: test-client
     client-secret: test-secret
+    description: secondo client test
+    client-url: http://localhost:8081
     client-authentication-methods: [client_secret_basic]
     redirect-uris:
-      - ${oauth2-clients.second-client.client-url}/login/oauth2/code/${oauth2-clients.second-client.client-id}
+      - http://localhost:8081/login/oauth2/code/test-client
     post-logout-redirect-uris:
-      - ${oauth2-clients.second-client.client-url}/
+      - http://localhost:8081/
     scopes: [openid, profile, email]
     authorization-grant-types: [authorization_code, client_credentials]
     authorization-consent: true
@@ -36,15 +36,15 @@ oauth2-clients:
     authorization-code-ttl: 5m
     reuse-refresh-tokens: false
 
-  third-client:
-    client-url: http://localhost:8082
-    client-id: public-client
+  - client-id: public-client
     client-secret:
+    client-url: http://localhost:8082
+    description: client test pubblico
     client-authentication-methods: [none]
     redirect-uris:
-      - ${oauth2-clients.third-client.client-url}/login/oauth2/code/${oauth2-clients.third-client.client-id}
+      - http://localhost:8082/login/oauth2/code/public-client
     post-logout-redirect-uris:
-      - ${oauth2-clients.third-client.client-url}/
+      - http://localhost:8082/
     scopes: [openid, profile, email]
     authorization-grant-types: [authorization_code]
     authorization-consent: true

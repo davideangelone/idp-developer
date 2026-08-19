@@ -24,8 +24,8 @@ public class OAuth2Client {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
-    private String name;
+    @Column
+    private String description;
 
     @Column(nullable = false, unique = true)
     private String clientId;

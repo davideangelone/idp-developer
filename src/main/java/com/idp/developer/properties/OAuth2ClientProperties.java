@@ -7,9 +7,10 @@ import lombok.Data;
 
 @Data
 public class OAuth2ClientProperties {
-    private String clientUrl;
     private String clientId;
     private String clientSecret;
+    private String description;
+    private String clientUrl;
     private List<String> clientAuthenticationMethods;
     private List<String> redirectUris;
     private List<String> postLogoutRedirectUris;

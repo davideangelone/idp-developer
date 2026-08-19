@@ -6,10 +6,10 @@ import java.util.Set;
 
 public record OAuth2ClientUpdateDto(
         Long id,
-        String name,
         String clientId,
-        String clientUrl,
         String clientSecret,
+        String description,
+        String clientUrl,
         List<String> redirectUris,
         List<String> postLogoutRedirectUris,
         Set<String> scopes,
