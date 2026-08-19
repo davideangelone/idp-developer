@@ -105,7 +105,7 @@ class AuthorizationCodeFlowE2ETest extends AbstractIdpIntegrationMockMvcTest {
         HttpResponse<String> consentPage = httpClient.send(
                 request(resolve(consentLocation)).header("Accept", "text/html").GET().build(),
                 HttpResponse.BodyHandlers.ofString());
-        assertThat(consentPage.statusCode()).isEqualTo(configProperties.getAuthorizationServer().isAuthorizationConsent() ? HttpStatus.OK.value() : HttpStatus.FOUND.value());
+        assertThat(consentPage.statusCode()).isEqualTo(getOauth2Client().isAuthorizationConsent() ? HttpStatus.OK.value() : HttpStatus.FOUND.value());
 
         // extract state + scope checkboxes from consent page
         //    (the consent POST is handled by the authorization-server filter chain, which has CSRF disabled)

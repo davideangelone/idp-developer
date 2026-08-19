@@ -433,6 +433,9 @@ La risposta dovrebbe contenere:
 }
 ```
 
+*Nota*  
+È possibile effettuare il login selezionando semplicemente l'utente, senza inserire la password, impostando a `true` il flag `free-login` nella configurazione dell'Authorization Server.
+
 ---
 
 # Logout OIDC
@@ -568,12 +571,8 @@ File `config-idp.yaml` per la configurazione dell'Authorization Server:
 ```yaml
 authorization-server:
   issuer-url: http://localhost:${server.port}
-  authorization-consent: true
-  access-token-ttl: 5m
-  refresh-token-ttl: 30d
-  authorization-code-ttl: 5m
-  reuse-refresh-tokens: false
   supported-scopes: [openid, profile, email, address, phone]
+  supported-grant-types: [authorization_code, refresh_token, client_credentials]
   free-login: true
 
 jwt:
@@ -582,6 +581,28 @@ jwt:
   key-store-password: changeit
   key-alias: idp-signing
   key-password: changeit
+
+claims:
+  always:
+    roles: roles
+    groups: groups
+
+  scopes:
+    profile:
+      name: fullName
+      given_name: firstName
+      family_name: lastName
+      preferred_username: username
+
+    email:
+      email: email
+      email_verified: emailVerified
+
+    address:
+      address: address
+
+    phone:
+      phone_number: phoneNumber
 ```
 
 File `config-oauth2-clients.yml` per la configurazione dei client Oauth2:
@@ -598,6 +619,12 @@ oauth2-clients:
       - ${oauth2-clients.first-client.client-url}/
     scopes: [openid, profile, email, address, phone]
     authorization-grant-types: [authorization_code, refresh_token, client_credentials]
+    authorization-consent: true
+    require-proof-key: true
+    access-token-ttl: 5m
+    refresh-token-ttl: 30d
+    authorization-code-ttl: 5m
+    reuse-refresh-tokens: false
 
   second-client:
     client-url: http://localhost:8081
@@ -609,7 +636,12 @@ oauth2-clients:
       - ${oauth2-clients.second-client.client-url}/
     scopes: [openid, profile, email]
     authorization-grant-types: [authorization_code, refresh_token]
-
+    authorization-consent: true
+    require-proof-key: true
+    access-token-ttl: 5m
+    refresh-token-ttl: 30d
+    authorization-code-ttl: 5m
+    reuse-refresh-tokens: false
 ```
 
 Gli utenti di test sono configurati nel file `config-users.yml`:

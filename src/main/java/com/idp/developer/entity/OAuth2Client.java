@@ -1,5 +1,6 @@
 package com.idp.developer.entity;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.Set;
 
@@ -41,6 +42,25 @@ public class OAuth2Client {
     @Column
     private List<String> postLogoutRedirectUris;
 
+    @Column
+    private boolean requireProofKey;
+
+    @Column(nullable = false)
+    private boolean authorizationConsent;
+
+    @Column(nullable = false)
+    private Duration accessTokenTtl;
+
+    @Column(nullable = false)
+    private Duration refreshTokenTtl;
+
+    @Column(nullable = false)
+    private Duration authorizationCodeTtl;
+
+    @Column(nullable = false)
+    private boolean reuseRefreshTokens;
+
+
     @ManyToMany
     @JoinTable(
             name = "oauth2_client_scope",
@@ -55,5 +75,5 @@ public class OAuth2Client {
             joinColumns = @JoinColumn(name = "client_id"),
             inverseJoinColumns = @JoinColumn(name = "grant_type_id")
     )
-    private Set<OAuth2GrantType> grantTypes;
+    private Set<OAuth2GrantType> authorizationGrantTypes;
 }

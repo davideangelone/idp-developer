@@ -24,20 +24,20 @@ public class OAuth2ClientConfig {
         var clients = configProperties.getOauth2Clients()
                 .values()
                 .stream()
-                .map(client -> createRegisteredClient(configProperties, client))
+                .map(this::createRegisteredClient)
                 .toList();
         return new InMemoryRegisteredClientRepository(clients);
     }
 
-    private RegisteredClient createRegisteredClient(ConfigProperties configProperties, OAuth2ClientProperties oauth2ClientProperties) {
+    private RegisteredClient createRegisteredClient(OAuth2ClientProperties oauth2ClientProperties) {
         RegisteredClient registeredClient = RegisteredClient.withId(UUID.randomUUID().toString())
                 .clientId(oauth2ClientProperties.getClientId())
                 .clientSecret(oauth2ClientProperties.getClientSecret())
                 .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
-                .authorizationGrantTypes(grantTypes ->
-                        grantTypes.addAll(oauth2ClientProperties.getAuthorizationGrantTypes().stream()
-                                .map(AuthorizationGrantType::new)
-                                .toList())
+                .authorizationGrantTypes(authorizationGrantTypes ->
+                        authorizationGrantTypes.addAll(oauth2ClientProperties.getAuthorizationGrantTypes().stream()
+                                               .map(AuthorizationGrantType::new)
+                                               .toList())
                 )
                 .redirectUris(redirectUris ->
                         redirectUris.addAll(oauth2ClientProperties.getRedirectUris()))
@@ -45,22 +45,22 @@ public class OAuth2ClientConfig {
                         postLogoutRedirectUris.addAll(oauth2ClientProperties.getPostLogoutRedirectUris()))
                 .scopes(scopes -> scopes.addAll(oauth2ClientProperties.getScopes()))
                 .clientSettings(ClientSettings.builder()
-                        .requireAuthorizationConsent(configProperties.getAuthorizationServer().isAuthorizationConsent())
-                        .requireProofKey(true)
+                        .requireAuthorizationConsent(oauth2ClientProperties.isAuthorizationConsent())
+                        .requireProofKey(oauth2ClientProperties.isRequireProofKey())
                         .build())
-                .tokenSettings(getTokenSettings(configProperties))
+                .tokenSettings(getTokenSettings(oauth2ClientProperties))
                 .build();
 
         log.info("Registered client '{}' scopes: {}", registeredClient.getClientId(), registeredClient.getScopes());
         return registeredClient;
     }
 
-    private TokenSettings getTokenSettings(ConfigProperties configProperties) {
+    private TokenSettings getTokenSettings(OAuth2ClientProperties oauth2ClientProperties) {
         return TokenSettings.builder()
-                .accessTokenTimeToLive(configProperties.getAuthorizationServer().getAccessTokenTtl())
-                .refreshTokenTimeToLive(configProperties.getAuthorizationServer().getRefreshTokenTtl())
-                .authorizationCodeTimeToLive(configProperties.getAuthorizationServer().getAuthorizationCodeTtl())
-                .reuseRefreshTokens(configProperties.getAuthorizationServer().isReuseRefreshTokens())
+                .accessTokenTimeToLive(oauth2ClientProperties.getAccessTokenTtl())
+                .refreshTokenTimeToLive(oauth2ClientProperties.getRefreshTokenTtl())
+                .authorizationCodeTimeToLive(oauth2ClientProperties.getAuthorizationCodeTtl())
+                .reuseRefreshTokens(oauth2ClientProperties.isReuseRefreshTokens())
                 .build();
     }
 

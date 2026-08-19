@@ -1,6 +1,5 @@
 package com.idp.developer.entity;
 
-import java.time.Duration;
 import java.util.Set;
 
 import jakarta.persistence.Column;
@@ -25,21 +24,6 @@ public class AuthorizationServer {
 
     @Column(nullable = false)
     private String issuerUrl;
-
-    @Column(nullable = false)
-    private boolean authorizationConsent;
-
-    @Column(nullable = false)
-    private Duration accessTokenTtl;
-
-    @Column(nullable = false)
-    private Duration refreshTokenTtl;
-
-    @Column(nullable = false)
-    private Duration authorizationCodeTtl;
-
-    @Column(nullable = false)
-    private boolean reuseRefreshTokens;
 
     @ManyToMany
     @JoinTable(

@@ -1,10 +1,5 @@
 authorization-server:
   issuer-url: http://localhost:${server.port}
-  authorization-consent: true
-  access-token-ttl: 5m
-  refresh-token-ttl: 30d
-  authorization-code-ttl: 5m
-  reuse-refresh-tokens: false
   supported-scopes: [openid, profile, email, address, phone]
   supported-grant-types: [authorization_code, refresh_token, client_credentials]
   free-login: true

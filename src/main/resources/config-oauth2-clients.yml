@@ -10,6 +10,12 @@ oauth2-clients:
       - ${oauth2-clients.first-client.client-url}/
     scopes: [openid, profile, email, address, phone]
     authorization-grant-types: [authorization_code, refresh_token, client_credentials]
+    authorization-consent: true
+    require-proof-key: true
+    access-token-ttl: 5m
+    refresh-token-ttl: 30d
+    authorization-code-ttl: 5m
+    reuse-refresh-tokens: false
 
   second-client:
     client-url: http://localhost:8081
@@ -21,3 +27,9 @@ oauth2-clients:
       - ${oauth2-clients.second-client.client-url}/
     scopes: [openid, profile, email]
     authorization-grant-types: [authorization_code, refresh_token]
+    authorization-consent: true
+    require-proof-key: true
+    access-token-ttl: 5m
+    refresh-token-ttl: 30d
+    authorization-code-ttl: 5m
+    reuse-refresh-tokens: false

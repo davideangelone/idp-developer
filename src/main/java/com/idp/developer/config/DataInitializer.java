@@ -146,11 +146,6 @@ public class DataInitializer {
                 .orElseGet(AuthorizationServer::new);
 
         authorizationServer.setIssuerUrl(properties.getIssuerUrl());
-        authorizationServer.setAuthorizationConsent(properties.isAuthorizationConsent());
-        authorizationServer.setAccessTokenTtl(properties.getAccessTokenTtl());
-        authorizationServer.setRefreshTokenTtl(properties.getRefreshTokenTtl());
-        authorizationServer.setAuthorizationCodeTtl(properties.getAuthorizationCodeTtl());
-        authorizationServer.setReuseRefreshTokens(properties.isReuseRefreshTokens());
         authorizationServer.setFreeLogin(properties.isFreeLogin());
 
         authorizationServer.setSupportedScopes(
@@ -220,9 +215,16 @@ public class DataInitializer {
                     .map(name -> getScope(scopes, name, client.getClientId()))
                     .collect(Collectors.toSet()));
 
-            client.setGrantTypes(clientProperties.getAuthorizationGrantTypes().stream()
-                    .map(name -> getGrantType(grantTypes, name, client.getClientId()))
+            client.setAuthorizationGrantTypes(clientProperties.getAuthorizationGrantTypes().stream()
+                    .map(name -> getAuthorizationGrantType(grantTypes, name, client.getClientId()))
                     .collect(Collectors.toSet()));
+
+            client.setAuthorizationConsent(clientProperties.isAuthorizationConsent());
+            client.setRequireProofKey(clientProperties.isRequireProofKey());
+            client.setAccessTokenTtl(clientProperties.getAccessTokenTtl());
+            client.setRefreshTokenTtl(clientProperties.getRefreshTokenTtl());
+            client.setAuthorizationCodeTtl(clientProperties.getAuthorizationCodeTtl());
+            client.setReuseRefreshTokens(clientProperties.isReuseRefreshTokens());
 
             clientRepository.save(client);
         }
@@ -237,10 +239,10 @@ public class DataInitializer {
         return scope;
     }
 
-    private OAuth2GrantType getGrantType(Map<String, OAuth2GrantType> grantTypes, String name, String clientId) {
+    private OAuth2GrantType getAuthorizationGrantType(Map<String, OAuth2GrantType> grantTypes, String name, String clientId) {
         OAuth2GrantType grantType = grantTypes.get(name);
         if (grantType == null) {
-            throw new IllegalStateException("Grant Type OAuth2 [" + name + "] non valido per il client [" + clientId + "]");
+            throw new IllegalStateException("Authorization Grant Type OAuth2 [" + name + "] non valido per il client [" + clientId + "]");
         }
 
         return grantType;
