@@ -5,8 +5,10 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 
+import com.idp.developer.model.AuthorizationServerDto;
 import com.idp.developer.model.OAuth2ClientDto;
 import com.idp.developer.model.OAuth2ClientUpdateDto;
+import com.idp.developer.service.AuthorizationServerService;
 import com.idp.developer.service.OAuth2ClientService;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -32,7 +34,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ClientsView extends AnonymousVerticalLayout {
 
-    public ClientsView(OAuth2ClientService oAuth2ClientService) {
+    public ClientsView(AuthorizationServerService authorizationServerService, OAuth2ClientService oAuth2ClientService) {
 
         setSpacing(true);
         setPadding(true);
@@ -41,14 +43,14 @@ public class ClientsView extends AnonymousVerticalLayout {
 
         oAuth2ClientService
                 .getAllOAuth2Clients()
-                .forEach(oAuth2ClientDto -> add(createDetails(oAuth2ClientService, oAuth2ClientDto)));
+                .forEach(oAuth2ClientDto -> add(createDetails(authorizationServerService.getAuthorizationServer(), oAuth2ClientService, oAuth2ClientDto)));
     }
 
-    private Details createDetails(OAuth2ClientService oAuth2ClientService, OAuth2ClientDto oAuth2ClientDto) {
+    private Details createDetails(AuthorizationServerDto authorizationServer, OAuth2ClientService oAuth2ClientService, OAuth2ClientDto oAuth2ClientDto) {
         Span summary = new Span(oAuth2ClientDto.name());
         summary.getStyle().setFontWeight("bold");
 
-        return new Details(summary, createClientPanel(oAuth2ClientService, oAuth2ClientDto));
+        return new Details(summary, createClientPanel(authorizationServer, oAuth2ClientService, oAuth2ClientDto));
     }
 
     private String formatDuration(Duration duration) {
@@ -91,7 +93,7 @@ public class ClientsView extends AnonymousVerticalLayout {
         }
     }
 
-    private FormLayout createClientPanel(OAuth2ClientService oAuth2ClientService, OAuth2ClientDto oAuth2ClientDto) {
+    private FormLayout createClientPanel(AuthorizationServerDto authorizationServerDto, OAuth2ClientService oAuth2ClientService, OAuth2ClientDto oAuth2ClientDto) {
 
         FormLayout layout = new FormLayout();
 
@@ -104,7 +106,7 @@ public class ClientsView extends AnonymousVerticalLayout {
         clientSecret.setValue(oAuth2ClientDto.clientSecret());
 
         MultiSelectComboBox<String> authenticationMethods = new MultiSelectComboBox<>("Client Authentication Methods");
-        authenticationMethods.setItems(oAuth2ClientDto.clientAuthenticationMethods());
+        authenticationMethods.setItems(authorizationServerDto.supportedAuthenticationMethods());
         authenticationMethods.setValue(new HashSet<>(oAuth2ClientDto.clientAuthenticationMethods()));
 
         TextArea redirectUris = new TextArea("Redirect URIs");
@@ -114,11 +116,11 @@ public class ClientsView extends AnonymousVerticalLayout {
         postLogoutRedirectUris.setValue(String.join(System.lineSeparator(), oAuth2ClientDto.postLogoutRedirectUris()));
 
         MultiSelectComboBox<String> scopes = new MultiSelectComboBox<>("Scopes");
-        scopes.setItems(oAuth2ClientDto.scopes());
+        scopes.setItems(authorizationServerDto.supportedScopes());
         scopes.setValue(new HashSet<>(oAuth2ClientDto.scopes()));
 
         MultiSelectComboBox<String> authorizationGrantTypes = new MultiSelectComboBox<>("Authorization Grant Types");
-        authorizationGrantTypes.setItems(oAuth2ClientDto.authorizationGrantTypes());
+        authorizationGrantTypes.setItems(authorizationServerDto.supportedGrantTypes());
         authorizationGrantTypes.setValue(new HashSet<>(oAuth2ClientDto.authorizationGrantTypes()));
 
         Checkbox authorizationConsent = new Checkbox("Authorization Consent");
