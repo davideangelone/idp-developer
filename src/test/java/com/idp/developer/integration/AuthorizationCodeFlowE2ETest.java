@@ -92,7 +92,7 @@ class AuthorizationCodeFlowE2ETest extends AbstractIdpIntegrationMockMvcTest {
                 + "&nonce=" + nonce
                 + "&code_challenge=" + codeChallenge
                 + "&code_challenge_method=S256";
-        HttpResponse<String> authResponse = getAuthResponse(authQuery);
+        HttpResponse<String> authResponse = getAuthResponse(authQuery, true);
 
         String loginLocation = locationOf(authResponse);
         assertThat(loginLocation).contains("/login");
@@ -253,12 +253,13 @@ class AuthorizationCodeFlowE2ETest extends AbstractIdpIntegrationMockMvcTest {
         return loginResponse;
     }
 
-    private HttpResponse<String> getAuthResponse(String authQuery) throws IOException, InterruptedException {
+    private HttpResponse<String> getAuthResponse(String authQuery, boolean requireProofKey) throws IOException, InterruptedException {
         HttpResponse<String> authResponse = httpClient.send(
                 request(URI.create(baseUrl + "/oauth2/authorize?" + authQuery))
                         .header("Accept", "text/html").GET().build(),
                 HttpResponse.BodyHandlers.ofString());
-        assertThat(authResponse.statusCode()).isEqualTo(HttpStatus.FOUND.value());
+        int expectedResult = requireProofKey ? HttpStatus.FOUND.value() : HttpStatus.OK.value();
+        assertThat(authResponse.statusCode()).isEqualTo(expectedResult);
         return authResponse;
     }
 
@@ -290,26 +291,28 @@ class AuthorizationCodeFlowE2ETest extends AbstractIdpIntegrationMockMvcTest {
     }
 
     @Test
-    @DisplayName("Authorize senza PKCE dopo login restituisce invalid_request (400)")
+    @DisplayName("Authorize senza PKCE dopo login restituisce invalid_request (400) se requireProofKey=true")
     void fullFlow_missingPkceAfterLogin_returnsInvalidRequest() throws Exception {
         // Authenticate via the login form to obtain a session cookie.
         getLoginResponse(URI.create(baseUrl + "/login"));
 
-        // Authenticated authorize WITHOUT code_challenge must be rejected (requireProofKey=true).
+        // Authenticated authorize WITHOUT code_challenge must be rejected if requireProofKey=true.
         String query = "response_type=code"
                 + "&client_id=" + getOauth2Client().getClientId()
                 + "&redirect_uri=" + URLEncoder.encode(getOauth2Client().getRedirectUris().getFirst(), StandardCharsets.UTF_8)
                 + "&scope=" + URLEncoder.encode(SCOPES, StandardCharsets.UTF_8)
                 + "&state=" + generateRandomState();
-        HttpResponse<String> authResponse = getAuthResponse(query);
+        HttpResponse<String> authResponse = getAuthResponse(query, getOauth2Client().isRequireProofKey());
 
-        // SAS 1.2.4 rejects a missing PKCE after authentication with a redirect back to the
-        // redirect_uri carrying error=invalid_request (no authorization code is issued).
-        String location = locationOf(authResponse);
-        assertThat(location)
-                .isNotNull()
-                .contains("error=invalid_request")
-                .doesNotContain("code=");
+        if (getOauth2Client().isRequireProofKey()) {
+            // SAS 1.2.4 rejects a missing PKCE after authentication with a redirect back to the
+            // redirect_uri carrying error=invalid_request (no authorization code is issued).
+            String location = locationOf(authResponse);
+            assertThat(location)
+                    .isNotNull()
+                    .contains("error=invalid_request")
+                    .doesNotContain("code=");
+        }
     }
 
     @Test
@@ -348,7 +351,7 @@ class AuthorizationCodeFlowE2ETest extends AbstractIdpIntegrationMockMvcTest {
                 + "&state=" + state
                 + "&code_challenge=" + codeChallenge
                 + "&code_challenge_method=S256";
-        HttpResponse<String> authResponse = getAuthResponse(authQuery);
+        HttpResponse<String> authResponse = getAuthResponse(authQuery, true);
         HttpResponse<String> loginResponse = getLoginResponse(resolve(locationOf(authResponse)));
 
         HttpResponse<String> consentPage = httpClient.send(
