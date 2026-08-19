@@ -58,7 +58,7 @@ public class UserJwtTokenCustomizer implements OAuth2TokenCustomizer<JwtEncoding
     }
 
     private void logToken(String username, JwtEncodingContext context) {
-        log.info("Generating token: user={}, tokenType={}, clientId={}, grantType={}, scopes={}, claims={}",
+        log.info("Generato token: user={}, tokenType={}, clientId={}, grantType={}, scopes={}, claims={}",
                 username,
                 context.getTokenType().getValue(),
                 context.getRegisteredClient().getClientId(),

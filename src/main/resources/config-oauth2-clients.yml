@@ -3,7 +3,7 @@ oauth2-clients:
     client-url: http://localhost:8080
     client-id: oidc-client
     client-secret: secret
-    client-authentication-methods: [client_secret_basic, none]
+    client-authentication-methods: [client_secret_basic]
     redirect-uris:
       - ${oauth2-clients.first-client.client-url}/login/oauth2/code/${oauth2-clients.first-client.client-id}
       - https://oauth.pstmn.io/v1/callback

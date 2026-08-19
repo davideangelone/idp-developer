@@ -9,7 +9,14 @@ import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface OAuth2ClientRepository extends JpaRepository<OAuth2Client, Long> {
-    Optional<OAuth2Client> findByClientId(String clientId);
+
+    @EntityGraph(attributePaths = {"clientAuthenticationMethods", "scopes", "authorizationGrantTypes"})
+    Optional<OAuth2Client> findByClientId(@NonNull String clientId);
+
+    @EntityGraph(attributePaths = {"clientAuthenticationMethods", "scopes", "authorizationGrantTypes"})
+    @Override
+    @NonNull
+    Optional<OAuth2Client> findById(@NonNull Long id);
 
     @EntityGraph(attributePaths = {"clientAuthenticationMethods", "scopes", "authorizationGrantTypes"})
     @NonNull

@@ -1,6 +1,7 @@
 package com.idp.developer.config;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -20,12 +21,14 @@ import com.idp.developer.repository.OAuth2ClientRepository;
 import com.idp.developer.repository.OAuth2GrantTypeRepository;
 import com.idp.developer.repository.OAuth2ScopeRepository;
 import com.idp.developer.repository.UserRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 @Configuration
+@Slf4j
 public class DataInitializer {
 
     @Bean
@@ -263,6 +266,10 @@ public class DataInitializer {
             client.setAuthorizationCodeTtl(clientProperties.getAuthorizationCodeTtl());
             client.setReuseRefreshTokens(clientProperties.isReuseRefreshTokens());
 
+            List<String> scopesNames = client.getScopes().stream()
+                                                         .map(OAuth2Scope::getName)
+                                                         .toList();
+            log.info("Inizializzazione client '{}' scopes: {}", client.getClientId(), scopesNames);
             clientRepository.save(client);
         }
     }
