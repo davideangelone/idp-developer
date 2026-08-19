@@ -33,7 +33,11 @@ public class OAuth2ClientConfig {
         RegisteredClient registeredClient = RegisteredClient.withId(UUID.randomUUID().toString())
                 .clientId(oauth2ClientProperties.getClientId())
                 .clientSecret(oauth2ClientProperties.getClientSecret())
-                .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
+                .clientAuthenticationMethods(clientAuthenticationMethods ->
+                        clientAuthenticationMethods.addAll(oauth2ClientProperties.getClientAuthenticationMethods().stream()
+                                               .map(ClientAuthenticationMethod::new)
+                                               .toList())
+                )
                 .authorizationGrantTypes(authorizationGrantTypes ->
                         authorizationGrantTypes.addAll(oauth2ClientProperties.getAuthorizationGrantTypes().stream()
                                                .map(AuthorizationGrantType::new)

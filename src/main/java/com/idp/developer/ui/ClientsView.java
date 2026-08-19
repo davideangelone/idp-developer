@@ -43,6 +43,7 @@ public class ClientsView extends AnonymousVerticalLayout {
                 new Span(),
                 readOnlyField("Client ID", oAuth2ClientDto.clientId()),
                 readOnlyField("Client Secret", oAuth2ClientDto.clientSecret()),
+                readOnlyField("Client Authentication Methods", oAuth2ClientDto.clientAuthenticationMethods()),
                 readOnlyTextArea("Redirect URIs", oAuth2ClientDto.redirectUris()),
                 readOnlyTextArea("Post Logout Redirect URIs", oAuth2ClientDto.postLogoutRedirectUris()),
                 readOnlyField("Scopes", oAuth2ClientDto.scopes()),

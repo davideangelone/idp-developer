@@ -10,6 +10,7 @@ public class OAuth2ClientProperties {
     private String clientUrl;
     private String clientId;
     private String clientSecret;
+    private List<String> clientAuthenticationMethods;
     private List<String> redirectUris;
     private List<String> postLogoutRedirectUris;
     private List<String> scopes;

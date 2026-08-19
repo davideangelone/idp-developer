@@ -33,6 +33,14 @@ public class OAuth2Client {
     @Column(nullable = false)
     private String clientSecret;
 
+    @ManyToMany
+    @JoinTable(
+            name = "oauth2_client_authentication_method",
+            joinColumns = @JoinColumn(name = "client_id"),
+            inverseJoinColumns = @JoinColumn(name = "authentication_method_id")
+    )
+    private Set<OAuth2AuthenticationMethod> clientAuthenticationMethods;
+
     @Column(nullable = false)
     private String clientUrl;
 

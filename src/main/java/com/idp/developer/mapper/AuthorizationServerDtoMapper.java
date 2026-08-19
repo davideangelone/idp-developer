@@ -1,6 +1,7 @@
 package com.idp.developer.mapper;
 
 import com.idp.developer.entity.AuthorizationServer;
+import com.idp.developer.entity.OAuth2AuthenticationMethod;
 import com.idp.developer.entity.OAuth2GrantType;
 import com.idp.developer.entity.OAuth2Scope;
 import com.idp.developer.model.AuthorizationServerDto;
@@ -11,6 +12,10 @@ import org.mapstruct.MappingConstants;
 public interface AuthorizationServerDtoMapper {
 
     AuthorizationServerDto toDto(AuthorizationServer entity);
+
+    default String map(OAuth2AuthenticationMethod authenticationMethod) {
+        return authenticationMethod.getName();
+    }
 
     default String map(OAuth2Scope scope) {
         return scope.getName();

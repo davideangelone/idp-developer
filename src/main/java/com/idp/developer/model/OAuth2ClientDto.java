@@ -9,6 +9,7 @@ public record OAuth2ClientDto(
         String name,
         String clientId,
         String clientSecret,
+        Set<String> clientAuthenticationMethods,
         String clientUrl,
         List<String> redirectUris,
         List<String> postLogoutRedirectUris,

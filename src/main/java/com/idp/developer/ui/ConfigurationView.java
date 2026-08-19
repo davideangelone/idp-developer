@@ -22,6 +22,7 @@ public class ConfigurationView extends AnonymousVerticalLayout {
         FormLayout authorizationServer = new FormLayout();
         authorizationServer.add(
                 readOnlyField("Issuer", authorizationServerService.getAuthorizationServer().issuerUrl()),
+                readOnlyField("Supported authentication methods", authorizationServerService.getAuthorizationServer().supportedAuthenticationMethods()),
                 readOnlyField("Supported scopes", authorizationServerService.getAuthorizationServer().supportedScopes()),
                 readOnlyField("Supported grant types", authorizationServerService.getAuthorizationServer().supportedGrantTypes()),
                 readOnlyField("Login", authorizationServerService.getAuthorizationServer().freeLogin() ? "Free" : "Default")

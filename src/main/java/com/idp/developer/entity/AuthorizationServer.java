@@ -27,6 +27,14 @@ public class AuthorizationServer {
 
     @ManyToMany
     @JoinTable(
+            name = "authorization_server_authentication_method",
+            joinColumns = @JoinColumn(name = "authorization_server_id"),
+            inverseJoinColumns = @JoinColumn(name = "authentication_method_id")
+    )
+    private Set<OAuth2AuthenticationMethod> supportedAuthenticationMethods;
+
+    @ManyToMany
+    @JoinTable(
             name = "authorization_server_scope",
             joinColumns = @JoinColumn(name = "authorization_server_id"),
             inverseJoinColumns = @JoinColumn(name = "scope_id")

@@ -5,6 +5,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import com.idp.developer.entity.AuthorizationServer;
+import com.idp.developer.entity.OAuth2AuthenticationMethod;
 import com.idp.developer.entity.OAuth2Claim;
 import com.idp.developer.entity.OAuth2Client;
 import com.idp.developer.entity.OAuth2GrantType;
@@ -13,6 +14,7 @@ import com.idp.developer.entity.User;
 import com.idp.developer.properties.ConfigProperties;
 import com.idp.developer.properties.OAuth2ClientProperties;
 import com.idp.developer.repository.AuthorizationServerRepository;
+import com.idp.developer.repository.OAuth2AuthenticationMethodRepository;
 import com.idp.developer.repository.OAuth2ClaimRepository;
 import com.idp.developer.repository.OAuth2ClientRepository;
 import com.idp.developer.repository.OAuth2GrantTypeRepository;
@@ -31,6 +33,7 @@ public class DataInitializer {
             AuthorizationServerRepository authorizationServerRepository,
             UserRepository userRepository,
             OAuth2ClientRepository clientRepository,
+            OAuth2AuthenticationMethodRepository authenticationMethodRepository,
             OAuth2ScopeRepository scopeRepository,
             OAuth2ClaimRepository claimRepository,
             OAuth2GrantTypeRepository grantTypeRepository,
@@ -38,15 +41,36 @@ public class DataInitializer {
             ConfigProperties configProperties) {
 
         return args -> {
+            Map<String, OAuth2AuthenticationMethod> authenticationMethods = initAuthenticationMethods(authenticationMethodRepository, configProperties);
             Map<String, OAuth2Scope> scopes = initScopes(scopeRepository, configProperties);
             Map<String, OAuth2GrantType> grantTypes = initGrantTypes(grantTypeRepository, configProperties);
 
             initAlwaysClaims(claimRepository, configProperties);
             initScopeClaims(scopeRepository, claimRepository, configProperties);
-            initAuthorizationServer(scopes, grantTypes, authorizationServerRepository, configProperties);
+            initAuthorizationServer(authenticationMethods, scopes, grantTypes, authorizationServerRepository, configProperties);
             initUsers(userRepository, passwordEncoder, configProperties);
-            initClients(scopes, grantTypes, clientRepository, configProperties);
+            initClients(authenticationMethods, scopes, grantTypes, clientRepository, configProperties);
         };
+    }
+
+    private Map<String, OAuth2AuthenticationMethod> initAuthenticationMethods(OAuth2AuthenticationMethodRepository authenticationMethodRepository,
+                                                                              ConfigProperties configProperties) {
+
+        Map<String, OAuth2AuthenticationMethod> authenticationMethods = new HashMap<>();
+
+        for (String name : configProperties.getAuthorizationServer().getSupportedAuthenticationMethods()) {
+
+            OAuth2AuthenticationMethod authenticationMethod = authenticationMethodRepository.findByName(name);
+            if (null == authenticationMethod) {
+                authenticationMethod = new OAuth2AuthenticationMethod();
+                authenticationMethod.setName(name);
+                authenticationMethod = authenticationMethodRepository.save(authenticationMethod);
+            }
+
+            authenticationMethods.put(authenticationMethod.getName(), authenticationMethod);
+        }
+
+        return authenticationMethods;
     }
 
     private Map<String, OAuth2Scope> initScopes(OAuth2ScopeRepository scopeRepository,
@@ -134,6 +158,7 @@ public class DataInitializer {
     }
 
     private void initAuthorizationServer(
+            Map<String, OAuth2AuthenticationMethod> authenticationMethods,
             Map<String, OAuth2Scope> scopes,
             Map<String, OAuth2GrantType> grantTypes,
             AuthorizationServerRepository authorizationServerRepository,
@@ -147,6 +172,12 @@ public class DataInitializer {
 
         authorizationServer.setIssuerUrl(properties.getIssuerUrl());
         authorizationServer.setFreeLogin(properties.isFreeLogin());
+
+        authorizationServer.setSupportedAuthenticationMethods(
+                properties.getSupportedAuthenticationMethods().stream()
+                        .map(authenticationMethods::get)
+                        .collect(Collectors.toSet())
+        );
 
         authorizationServer.setSupportedScopes(
                 properties.getSupportedScopes().stream()
@@ -191,6 +222,7 @@ public class DataInitializer {
     }
 
     private void initClients(
+            Map<String, OAuth2AuthenticationMethod> authenticationMethods,
             Map<String, OAuth2Scope> scopes,
             Map<String, OAuth2GrantType> grantTypes,
             OAuth2ClientRepository clientRepository,
@@ -207,6 +239,11 @@ public class DataInitializer {
             client.setName(clientName);
             client.setClientId(clientProperties.getClientId());
             client.setClientSecret(clientProperties.getClientSecret());
+
+            client.setClientAuthenticationMethods(clientProperties.getClientAuthenticationMethods().stream()
+                    .map(name -> getClientAuthenticationMethod(authenticationMethods, name, client.getClientId()))
+                    .collect(Collectors.toSet()));
+
             client.setClientUrl(clientProperties.getClientUrl());
             client.setRedirectUris(clientProperties.getRedirectUris());
             client.setPostLogoutRedirectUris(clientProperties.getPostLogoutRedirectUris());
@@ -228,6 +265,15 @@ public class DataInitializer {
 
             clientRepository.save(client);
         }
+    }
+
+    private OAuth2AuthenticationMethod getClientAuthenticationMethod(Map<String, OAuth2AuthenticationMethod> authenticationMethods, String name, String clientId) {
+        OAuth2AuthenticationMethod authenticationMethod = authenticationMethods.get(name);
+        if (authenticationMethod == null) {
+            throw new IllegalStateException("Authentication Method OAuth2 [" + name + "] non valido per il client [" + clientId + "]");
+        }
+
+        return authenticationMethod;
     }
 
     private OAuth2Scope getScope(Map<String, OAuth2Scope> scopes, String name, String clientId) {
