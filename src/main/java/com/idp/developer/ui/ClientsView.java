@@ -95,18 +95,16 @@ public class ClientsView extends AnonymousVerticalLayout {
 
         FormLayout layout = new FormLayout();
 
+        TextField clientId = readOnlyField("Client ID", oAuth2ClientDto.clientId());
+
         TextField clientUrl = new TextField("Client URL");
         clientUrl.setValue(oAuth2ClientDto.clientUrl());
-
-        TextField clientId = new TextField("Client ID");
-        clientId.setValue(oAuth2ClientDto.clientId());
 
         PasswordField clientSecret = new PasswordField("Client Secret");
         clientSecret.setValue(oAuth2ClientDto.clientSecret());
 
         MultiSelectComboBox<String> authenticationMethods = new MultiSelectComboBox<>("Client Authentication Methods");
         authenticationMethods.setItems(oAuth2ClientDto.clientAuthenticationMethods());
-
         authenticationMethods.setValue(new HashSet<>(oAuth2ClientDto.clientAuthenticationMethods()));
 
         TextArea redirectUris = new TextArea("Redirect URIs");
@@ -114,6 +112,14 @@ public class ClientsView extends AnonymousVerticalLayout {
 
         TextArea postLogoutRedirectUris = new TextArea("Post Logout Redirect URIs");
         postLogoutRedirectUris.setValue(String.join(System.lineSeparator(), oAuth2ClientDto.postLogoutRedirectUris()));
+
+        MultiSelectComboBox<String> scopes = new MultiSelectComboBox<>("Scopes");
+        scopes.setItems(oAuth2ClientDto.scopes());
+        scopes.setValue(new HashSet<>(oAuth2ClientDto.scopes()));
+
+        MultiSelectComboBox<String> authorizationGrantTypes = new MultiSelectComboBox<>("Authorization Grant Types");
+        authorizationGrantTypes.setItems(oAuth2ClientDto.authorizationGrantTypes());
+        authorizationGrantTypes.setValue(new HashSet<>(oAuth2ClientDto.authorizationGrantTypes()));
 
         Checkbox authorizationConsent = new Checkbox("Authorization Consent");
         authorizationConsent.setValue(oAuth2ClientDto.authorizationConsent());
@@ -128,8 +134,8 @@ public class ClientsView extends AnonymousVerticalLayout {
         TextField refreshTokenTtl = durationField("Refresh Token TTL", oAuth2ClientDto.refreshTokenTtl());
         TextField authorizationCodeTtl = durationField("Authorization Code TTL", oAuth2ClientDto.authorizationCodeTtl());
 
-        Button save = new Button("Salva");
-        save.addClickListener(event -> {
+        Button saveButton = new Button("Salva");
+        saveButton.addClickListener(event -> {
 
             try {
                 OAuth2ClientUpdateDto updateDto = new OAuth2ClientUpdateDto(
@@ -140,9 +146,9 @@ public class ClientsView extends AnonymousVerticalLayout {
                         clientSecret.getValue(),
                         parseLines(redirectUris.getValue()),
                         parseLines(postLogoutRedirectUris.getValue()),
-                        oAuth2ClientDto.scopes(),
-                        oAuth2ClientDto.authorizationGrantTypes(),
-                        oAuth2ClientDto.clientAuthenticationMethods(),
+                        scopes.getValue(),
+                        authorizationGrantTypes.getValue(),
+                        authenticationMethods.getValue(),
                         authorizationConsent.getValue(),
                         requireProofKey.getValue(),
                         Duration.ofSeconds(Long.parseLong(accessTokenTtl.getValue())),
@@ -163,19 +169,21 @@ public class ClientsView extends AnonymousVerticalLayout {
 
 
         layout.add(
-                clientUrl,
                 clientId,
+                clientUrl,
                 clientSecret,
+                authenticationMethods,
                 redirectUris,
                 postLogoutRedirectUris,
+                scopes,
+                authorizationGrantTypes,
                 authorizationConsent,
                 requireProofKey,
-                reuseRefreshTokens,
                 accessTokenTtl,
                 refreshTokenTtl,
                 authorizationCodeTtl,
-                new Span(),
-                save
+                reuseRefreshTokens,
+                saveButton
         );
 
         return layout;
