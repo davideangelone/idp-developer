@@ -65,6 +65,41 @@ public class ClientsView extends AnonymousVerticalLayout {
             Button deleteButton,
             OAuth2ClientService oAuth2ClientService) {
 
+        ConfirmDialog dialog = getConfirmDialog();
+
+        dialog.addConfirmListener(event -> {
+            try {
+                Set<Long> clientsIds = Set.copyOf(selectedClients.keySet());
+                Collection<String> clientNames = List.copyOf(selectedClients.values());
+
+                oAuth2ClientService.deleteOAuth2Client(clientsIds);
+                for (Long id : selectedClients.keySet()) {
+                    Div row = clientRows.remove(id);
+                    if (row != null) {
+                        remove(row);
+                    }
+                }
+
+                selectedClients.clear();
+                deleteButton.setEnabled(false);
+
+                if (clientNames.size() > 1) {
+                    log.info("Client {} eliminati", clientNames);
+                } else {
+                    log.info("Client {} eliminato", clientNames);
+                }
+
+                showClientsDeletedNotification(clientNames);
+            } catch (Exception e) {
+                log.error("Errore durante l'eliminazione dei client", e);
+                showClientsDeleteErrorNotification();
+            }
+        });
+
+        dialog.open();
+    }
+
+    private ConfirmDialog getConfirmDialog() {
         int count = selectedClients.size();
 
         ConfirmDialog dialog = new ConfirmDialog();
@@ -81,31 +116,7 @@ public class ClientsView extends AnonymousVerticalLayout {
 
         dialog.setConfirmText("Elimina");
         dialog.setConfirmButtonTheme(ButtonVariant.LUMO_ERROR.getVariantName() + " " + ButtonVariant.LUMO_PRIMARY.getVariantName());
-
-        dialog.addConfirmListener(event -> {
-            try {
-                Set<Long> clientIds = Set.copyOf(selectedClients.keySet());
-                Collection<String> clientNames = List.copyOf(selectedClients.values());
-
-                oAuth2ClientService.deleteOAuth2Client(clientIds);
-                selectedClients.keySet().forEach(id -> {
-                    Div row = clientRows.remove(id);
-                    if (row != null) {
-                        remove(row);
-                    }
-                });
-
-                selectedClients.clear();
-                deleteButton.setEnabled(false);
-
-                showClientsDeletedNotification(clientNames);
-            } catch (Exception e) {
-                log.error("Errore durante l'eliminazione dei client", e);
-                showClientsDeleteErrorNotification();
-            }
-        });
-
-        dialog.open();
+        return dialog;
     }
 
     private Div createClientRow(AuthorizationServerDto authorizationServer,
@@ -243,7 +254,7 @@ public class ClientsView extends AnonymousVerticalLayout {
                 oAuth2ClientService.updateOAuth2Client(updateDto);
 
                 showClientUpdatedNotification(oAuth2ClientDto.clientId());
-                log.info("Client {} aggiornato", oAuth2ClientDto.clientId());
+                log.info("Client [{}] aggiornato", oAuth2ClientDto.clientId());
             } catch (Exception e) {
                 log.error("Errore durante l'aggiornamento del client {}", oAuth2ClientDto.clientId(), e);
                 showClientUpdateErrorNotification(oAuth2ClientDto.clientId());
@@ -287,10 +298,8 @@ public class ClientsView extends AnonymousVerticalLayout {
         message.add(clientName);
         if (clientsIds.size() > 1) {
             message.add(" eliminati");
-            log.info("Client {} eliminati", clientsIds);
         } else {
             message.add(" eliminato");
-            log.info("Client {} eliminato", clientsIds);
         }
 
         openNotificationElement(message);
