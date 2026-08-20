@@ -32,10 +32,7 @@ public class DatabaseRegisteredClientRepository implements RegisteredClientRepos
                 .orElse(null);
     }
 
-    @Cacheable(
-            value = CacheNames.REGISTERED_CLIENTS,
-            key = "#clientId"
-    )
+    @Cacheable(value = CacheNames.REGISTERED_CLIENTS, key = "#clientId")
     @Override
     public RegisteredClient findByClientId(@NonNull String clientId) {
         return oAuth2ClientRepository.findByClientId(clientId)

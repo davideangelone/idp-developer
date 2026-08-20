@@ -1,6 +1,7 @@
 package com.idp.developer.service;
 
 import java.util.List;
+import java.util.Set;
 
 import com.idp.developer.constants.CacheNames;
 import com.idp.developer.entity.OAuth2Client;
@@ -44,10 +45,7 @@ public class OAuth2ClientService {
                 .toList();
     }
 
-    @CacheEvict(
-            value = CacheNames.REGISTERED_CLIENTS,
-            key = "#dto.clientId()"
-    )
+    @CacheEvict(value = CacheNames.REGISTERED_CLIENTS, allEntries = true)
     @Transactional
     public void updateOAuth2Client(OAuth2ClientUpdateDto dto) {
 
@@ -71,5 +69,11 @@ public class OAuth2ClientService {
         client.setReuseRefreshTokens(dto.reuseRefreshTokens());
 
         oAuth2ClientRepository.save(client);
+    }
+
+    @CacheEvict(value = CacheNames.REGISTERED_CLIENTS, allEntries = true)
+    @Transactional
+    public void deleteOAuth2Client(Set<Long> ids) {
+        oAuth2ClientRepository.deleteAllById(ids);
     }
 }

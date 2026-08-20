@@ -1,6 +1,11 @@
 package com.idp.developer.ui;
 
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import com.idp.developer.model.AuthorizationServerDto;
 import com.idp.developer.model.OAuth2ClientDto;
@@ -8,8 +13,10 @@ import com.idp.developer.model.OAuth2ClientUpdateDto;
 import com.idp.developer.service.AuthorizationServerService;
 import com.idp.developer.service.OAuth2ClientService;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.combobox.MultiSelectComboBox;
+import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
 import com.vaadin.flow.component.details.Details;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.html.Div;
@@ -28,6 +35,9 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ClientsView extends AnonymousVerticalLayout {
 
+    private final Map<Long, Div> clientRows = new HashMap<>();
+    private final Map<Long, String> selectedClients = new HashMap<>();
+
     public ClientsView(AuthorizationServerService authorizationServerService, OAuth2ClientService oAuth2ClientService) {
 
         setSpacing(true);
@@ -35,9 +45,98 @@ public class ClientsView extends AnonymousVerticalLayout {
 
         add(new H1("OAuth2 Clients"));
 
-        oAuth2ClientService
-                .getAllOAuth2Clients()
-                .forEach(oAuth2ClientDto -> add(createDetails(authorizationServerService.getAuthorizationServer(), oAuth2ClientService, oAuth2ClientDto)));
+        AuthorizationServerDto authorizationServer = authorizationServerService.getAuthorizationServer();
+
+        Button deleteButton = new Button("Elimina selezionati");
+        deleteButton.addClickListener(event -> showDeleteConfirmation(
+                deleteButton,
+                oAuth2ClientService
+        ));
+        deleteButton.setEnabled(false);
+
+        for (OAuth2ClientDto oAuth2ClientDto : oAuth2ClientService.getAllOAuth2Clients()) {
+            add(createClientRow(authorizationServer, oAuth2ClientService, oAuth2ClientDto, deleteButton));
+        }
+
+        add(deleteButton);
+    }
+
+    private void showDeleteConfirmation(
+            Button deleteButton,
+            OAuth2ClientService oAuth2ClientService) {
+
+        int count = selectedClients.size();
+
+        ConfirmDialog dialog = new ConfirmDialog();
+        dialog.setHeader("Elimina client");
+
+        String message = (count == 1)
+                ? "Sei sicuro di voler eliminare il client selezionato?"
+                : "Sei sicuro di voler eliminare i " + count + " client selezionati?";
+
+        dialog.setText(message);
+
+        dialog.setCancelable(true);
+        dialog.setCancelText("Annulla");
+
+        dialog.setConfirmText("Elimina");
+        dialog.setConfirmButtonTheme(ButtonVariant.LUMO_ERROR.getVariantName() + " " + ButtonVariant.LUMO_PRIMARY.getVariantName());
+
+        dialog.addConfirmListener(event -> {
+            try {
+                Set<Long> clientIds = Set.copyOf(selectedClients.keySet());
+                Collection<String> clientNames = List.copyOf(selectedClients.values());
+
+                oAuth2ClientService.deleteOAuth2Client(clientIds);
+                selectedClients.keySet().forEach(id -> {
+                    Div row = clientRows.remove(id);
+                    if (row != null) {
+                        remove(row);
+                    }
+                });
+
+                selectedClients.clear();
+                deleteButton.setEnabled(false);
+
+                showClientsDeletedNotification(clientNames);
+            } catch (Exception e) {
+                log.error("Errore durante l'eliminazione dei client", e);
+                showClientsDeleteErrorNotification();
+            }
+        });
+
+        dialog.open();
+    }
+
+    private Div createClientRow(AuthorizationServerDto authorizationServer,
+                                OAuth2ClientService oAuth2ClientService,
+                                OAuth2ClientDto client,
+                                Button deleteButton) {
+
+        Checkbox selected = new Checkbox();
+        selected.getElement().setAttribute("aria-label", "Seleziona client " + client.clientId());
+        selected.getStyle().set("margin-top", "1.05rem");
+        selected.addValueChangeListener(event -> {
+            if (Boolean.TRUE.equals(event.getValue())) {
+                selectedClients.put(client.id(), client.clientId());
+            } else {
+                selectedClients.remove(client.id());
+            }
+
+            deleteButton.setEnabled(!selectedClients.isEmpty());
+        });
+
+        Details details = createDetails(authorizationServer, oAuth2ClientService, client);
+        details.setWidthFull();
+
+        Div row = new Div(selected, details);
+        row.getStyle().set("display", "flex")
+                .set("align-items", "flex-start")
+                .set("width", "100%");
+
+        clientRows.put(client.id(), row);
+
+        return row;
     }
 
     private Details createDetails(AuthorizationServerDto authorizationServer,
@@ -178,6 +277,30 @@ public class ClientsView extends AnonymousVerticalLayout {
         return layout;
     }
 
+    private void showClientsDeletedNotification(Collection<String> clientsIds) {
+        Span message = new Span();
+        message.add("Client ");
+
+        Span clientName = new Span(String.join(", ", clientsIds));
+        clientName.getStyle().setFontWeight("bold");
+
+        message.add(clientName);
+        if (clientsIds.size() > 1) {
+            message.add(" eliminati");
+            log.info("Client {} eliminati", clientsIds);
+        } else {
+            message.add(" eliminato");
+            log.info("Client {} eliminato", clientsIds);
+        }
+
+        openNotificationElement(message);
+    }
+
+    private void showClientsDeleteErrorNotification() {
+        Span message = new Span("Errore durante l'eliminazione dei client");
+        openNotificationElement(message).open();
+    }
+
     private void showClientUpdatedNotification(String name) {
         Span message = new Span();
         message.add("Client ");
@@ -188,7 +311,7 @@ public class ClientsView extends AnonymousVerticalLayout {
         message.add(clientName);
         message.add(" aggiornato");
 
-        getNotificationElement(message).open();
+        openNotificationElement(message).open();
     }
 
     private void showClientUpdateErrorNotification(String name) {
@@ -200,7 +323,7 @@ public class ClientsView extends AnonymousVerticalLayout {
 
         message.add(clientName);
 
-        getNotificationElement(message).open();
+        openNotificationElement(message).open();
     }
 
 }
