@@ -21,6 +21,7 @@ import com.idp.developer.repository.OAuth2ClientRepository;
 import com.idp.developer.repository.OAuth2GrantTypeRepository;
 import com.idp.developer.repository.OAuth2ScopeRepository;
 import com.idp.developer.repository.UserRepository;
+import com.idp.developer.service.AuthorizationServerService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
@@ -41,7 +42,8 @@ public class DataInitializer {
             OAuth2ClaimRepository claimRepository,
             OAuth2GrantTypeRepository grantTypeRepository,
             PasswordEncoder passwordEncoder,
-            ConfigProperties configProperties) {
+            ConfigProperties configProperties,
+            AuthorizationServerService authorizationServerService) {
 
         return args -> {
             Map<String, OAuth2AuthenticationMethod> authenticationMethods = initAuthenticationMethods(authenticationMethodRepository, configProperties);
@@ -53,6 +55,7 @@ public class DataInitializer {
             initAuthorizationServer(authenticationMethods, scopes, grantTypes, authorizationServerRepository, configProperties);
             initUsers(userRepository, passwordEncoder, configProperties);
             initClients(authenticationMethods, scopes, grantTypes, clientRepository, configProperties);
+            authorizationServerService.markInitialized();
         };
     }
 

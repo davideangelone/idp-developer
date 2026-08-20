@@ -25,8 +25,8 @@ public class MainLayout extends AppLayout {
         H1 title = new H1("Developer IDP");
 
         title.getStyle()
-                .set("font-size", "var(--lumo-font-size-xl)")
-                .set("margin", "0");
+                .setFontSize("var(--lumo-font-size-xl)")
+                .setMargin("0");
 
         Button menuButton = new Button(
                 new Icon(VaadinIcon.MENU),
@@ -36,7 +36,7 @@ public class MainLayout extends AppLayout {
         HorizontalLayout header = new HorizontalLayout(menuButton, title);
         header.setWidthFull();
         header.setAlignItems(FlexComponent.Alignment.CENTER);
-        header.getStyle().set("padding", "var(--lumo-space-m)");
+        header.getStyle().setPaddingTop("var(--lumo-space-m)");
 
         addToNavbar(header);
     }
