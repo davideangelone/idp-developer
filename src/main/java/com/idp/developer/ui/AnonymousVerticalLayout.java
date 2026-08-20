@@ -102,7 +102,7 @@ public class AnonymousVerticalLayout extends VerticalLayout {
         }
     }
 
-    protected Notification openNotificationElement(Span message) {
+    protected void openNotificationElement(Span message) {
         Notification notification = new Notification();
 
         Button close = new Button(new Icon(VaadinIcon.CLOSE));
@@ -125,6 +125,5 @@ public class AnonymousVerticalLayout extends VerticalLayout {
         notification.setDuration(5000);
 
         notification.open();
-        return notification;
     }
 }

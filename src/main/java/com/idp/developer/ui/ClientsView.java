@@ -1,6 +1,5 @@
 package com.idp.developer.ui;
 
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -65,15 +64,15 @@ public class ClientsView extends AnonymousVerticalLayout {
             Button deleteButton,
             OAuth2ClientService oAuth2ClientService) {
 
-        ConfirmDialog dialog = getConfirmDialog();
+        ConfirmDialog dialog = createConfirmDialog();
 
         dialog.addConfirmListener(event -> {
             try {
-                Set<Long> clientsIds = Set.copyOf(selectedClients.keySet());
-                Collection<String> clientNames = List.copyOf(selectedClients.values());
+                Set<Long> clientIds = Set.copyOf(selectedClients.keySet());
+                List<String> clientNames = List.copyOf(selectedClients.values());
 
-                oAuth2ClientService.deleteOAuth2Client(clientsIds);
-                for (Long id : selectedClients.keySet()) {
+                oAuth2ClientService.deleteOAuth2Client(clientIds);
+                for (Long id : clientIds) {
                     Div row = clientRows.remove(id);
                     if (row != null) {
                         remove(row);
@@ -83,23 +82,18 @@ public class ClientsView extends AnonymousVerticalLayout {
                 selectedClients.clear();
                 deleteButton.setEnabled(false);
 
-                if (clientNames.size() > 1) {
-                    log.info("Client {} eliminati", clientNames);
-                } else {
-                    log.info("Client {} eliminato", clientNames);
-                }
-
-                showClientsDeletedNotification(clientNames);
+                log.info("Client {} {}", clientNames, (clientNames.size() > 1) ? "eliminati" : "eliminato");
+                openClientsDeletedNotification(clientNames);
             } catch (Exception e) {
                 log.error("Errore durante l'eliminazione dei client", e);
-                showClientsDeleteErrorNotification();
+                openClientsDeleteErrorNotification();
             }
         });
 
         dialog.open();
     }
 
-    private ConfirmDialog getConfirmDialog() {
+    private ConfirmDialog createConfirmDialog() {
         int count = selectedClients.size();
 
         ConfirmDialog dialog = new ConfirmDialog();
@@ -253,11 +247,11 @@ public class ClientsView extends AnonymousVerticalLayout {
 
                 oAuth2ClientService.updateOAuth2Client(updateDto);
 
-                showClientUpdatedNotification(oAuth2ClientDto.clientId());
+                openClientUpdatedNotification(oAuth2ClientDto.clientId());
                 log.info("Client [{}] aggiornato", oAuth2ClientDto.clientId());
             } catch (Exception e) {
                 log.error("Errore durante l'aggiornamento del client {}", oAuth2ClientDto.clientId(), e);
-                showClientUpdateErrorNotification(oAuth2ClientDto.clientId());
+                openClientUpdateErrorNotification(oAuth2ClientDto.clientId());
             }
         });
 
@@ -288,51 +282,38 @@ public class ClientsView extends AnonymousVerticalLayout {
         return layout;
     }
 
-    private void showClientsDeletedNotification(Collection<String> clientsIds) {
+    private void openClientsDeletedNotification(List<String> clientNames) {
         Span message = new Span();
         message.add("Client ");
-
-        Span clientName = new Span(String.join(", ", clientsIds));
-        clientName.getStyle().setFontWeight("bold");
-
-        message.add(clientName);
-        if (clientsIds.size() > 1) {
-            message.add(" eliminati");
-        } else {
-            message.add(" eliminato");
-        }
-
+        message.add(getClientName(String.join(", ", clientNames)));
+        message.add(clientNames.size() > 1 ? " eliminati" : " eliminato");
         openNotificationElement(message);
     }
 
-    private void showClientsDeleteErrorNotification() {
+    private void openClientsDeleteErrorNotification() {
         Span message = new Span("Errore durante l'eliminazione dei client");
-        openNotificationElement(message).open();
+        openNotificationElement(message);
     }
 
-    private void showClientUpdatedNotification(String name) {
+    private void openClientUpdatedNotification(String name) {
         Span message = new Span();
         message.add("Client ");
-
-        Span clientName = new Span(name);
-        clientName.getStyle().setFontWeight("bold");
-
-        message.add(clientName);
+        message.add(getClientName(name));
         message.add(" aggiornato");
-
-        openNotificationElement(message).open();
+        openNotificationElement(message);
     }
 
-    private void showClientUpdateErrorNotification(String name) {
+    private void openClientUpdateErrorNotification(String name) {
         Span message = new Span();
         message.add("Errore durante l'aggiornamento del client ");
+        message.add(getClientName(name));
+        openNotificationElement(message);
+    }
 
+    private Span getClientName(String name) {
         Span clientName = new Span(name);
         clientName.getStyle().setFontWeight("bold");
-
-        message.add(clientName);
-
-        openNotificationElement(message).open();
+        return clientName;
     }
 
 }
