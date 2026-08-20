@@ -1,6 +1,5 @@
 package com.idp.developer.ui;
 
-import java.time.Duration;
 import java.util.HashSet;
 
 import com.idp.developer.model.AuthorizationServerDto;
@@ -136,9 +135,9 @@ public class ClientsView extends AnonymousVerticalLayout {
                         authenticationMethods.getValue(),
                         authorizationConsent.getValue(),
                         requireProofKey.getValue(),
-                        Duration.ofSeconds(Long.parseLong(accessTokenTtl.getValue())),
-                        Duration.ofSeconds(Long.parseLong(refreshTokenTtl.getValue())),
-                        Duration.ofSeconds(Long.parseLong(authorizationCodeTtl.getValue())),
+                        getDurationFieldValue(accessTokenTtl),
+                        getDurationFieldValue(refreshTokenTtl),
+                        getDurationFieldValue(authorizationCodeTtl),
                         reuseRefreshTokens.getValue()
                 );
 

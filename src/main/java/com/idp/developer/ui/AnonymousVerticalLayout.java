@@ -3,7 +3,7 @@ package com.idp.developer.ui;
 import java.time.Duration;
 import java.util.Collection;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.StringJoiner;
 
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -52,13 +52,17 @@ public class AnonymousVerticalLayout extends VerticalLayout {
         field.setValueChangeMode(ValueChangeMode.EAGER);
 
         field.addValueChangeListener(event -> {
-            if (event.isFromClient() && !event.getValue().isBlank()) {
-                long newSeconds = Long.parseLong(event.getValue());
+            if (event.isFromClient()) {
+                long newSeconds = event.getValue().isEmpty() ? 0 : Long.parseLong(event.getValue());
                 description.setText(formatDuration(Duration.ofSeconds(newSeconds)));
             }
         });
 
         return field;
+    }
+
+    protected Duration getDurationFieldValue(TextField field) {
+        return field.getValue().isEmpty() ? Duration.ZERO : Duration.ofSeconds(Long.parseLong(field.getValue()));
     }
 
     protected List<String> parseLines(String value) {
@@ -74,27 +78,27 @@ public class AnonymousVerticalLayout extends VerticalLayout {
 
     private static String formatDuration(Duration duration) {
         if (duration == null) {
-            return "";
+            return null;
         }
 
-        List<DurationPart> parts = List.of(
-                new DurationPart(duration.toDays(), "giorno", "giorni"),
-                new DurationPart(duration.toHoursPart(), "ora", "ore"),
-                new DurationPart(duration.toMinutesPart(), "minuto", "minuti"),
-                new DurationPart(duration.toSecondsPart(), "secondo", "secondi")
-        );
+        StringJoiner result = new StringJoiner(", ");
 
-        String result = parts.stream()
-                .filter(part -> part.value() > 0)
-                .map(DurationPart::format)
-                .collect(Collectors.joining(", "));
+        addPart(result, duration.toDays(), "giorno", "giorni");
+        addPart(result, duration.toHoursPart(), "ora", "ore");
+        addPart(result, duration.toMinutesPart(), "minuto", "minuti");
+        addPart(result, duration.toSecondsPart(), "secondo", "secondi");
 
-        return result.isEmpty() ? "0 secondi" : result;
+        return result.length() == 0 ? "0 secondi" : result.toString();
     }
 
-    private record DurationPart(long value, String singular, String plural) {
-        String format() {
-            return value + " " + (value == 1 ? singular : plural);
+    private static void addPart(
+            StringJoiner result,
+            long value,
+            String singular,
+            String plural) {
+
+        if (value > 0) {
+            result.add(value + " " + (value == 1 ? singular : plural));
         }
     }
 
