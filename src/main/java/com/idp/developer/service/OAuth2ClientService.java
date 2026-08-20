@@ -1,5 +1,6 @@
 package com.idp.developer.service;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.Set;
 
@@ -50,7 +51,7 @@ public class OAuth2ClientService {
     public void updateOAuth2Client(OAuth2ClientUpdateDto dto) {
 
         OAuth2Client client = oAuth2ClientRepository.findById(dto.id())
-                .orElseThrow(() -> new IllegalArgumentException("OAuth2 client not found: " + dto.id()));
+                .orElseThrow(() -> new IllegalArgumentException("OAuth2 client non trovato: " + dto.id()));
 
         client.setClientId(dto.clientId());
         client.setClientSecret(dto.clientSecret());
@@ -75,5 +76,38 @@ public class OAuth2ClientService {
     @Transactional
     public void deleteOAuth2Client(Set<Long> ids) {
         oAuth2ClientRepository.deleteAllById(ids);
+    }
+
+    public boolean existsByClientId(String clientId) {
+        return oAuth2ClientRepository.existsByClientId(clientId);
+    }
+
+    @CacheEvict(value = CacheNames.REGISTERED_CLIENTS, key = "#clientId")
+    @Transactional
+    public OAuth2ClientDto createOAuth2Client(String clientId) {
+
+        if (oAuth2ClientRepository.existsByClientId(clientId)) {
+            throw new IllegalArgumentException("OAuth2 già esistente: " + clientId);
+        }
+
+        OAuth2Client client = new OAuth2Client();
+        client.setClientId(clientId);
+        client.setClientSecret("");
+        client.setDescription("");
+        client.setClientUrl("");
+        client.setRedirectUris(List.of());
+        client.setPostLogoutRedirectUris(List.of());
+        client.setScopes(Set.of());
+        client.setAuthorizationGrantTypes(Set.of());
+        client.setClientAuthenticationMethods(Set.of());
+        client.setAuthorizationConsent(false);
+        client.setRequireProofKey(false);
+        client.setReuseRefreshTokens(false);
+        client.setAccessTokenTtl(Duration.ZERO);
+        client.setRefreshTokenTtl(Duration.ZERO);
+        client.setAuthorizationCodeTtl(Duration.ZERO);
+
+        OAuth2Client saved = oAuth2ClientRepository.save(client);
+        return oauth2ClientDtoMapper.toDto(saved);
     }
 }

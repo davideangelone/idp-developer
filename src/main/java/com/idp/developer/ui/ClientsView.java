@@ -17,6 +17,7 @@ import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.combobox.MultiSelectComboBox;
 import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
 import com.vaadin.flow.component.details.Details;
+import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H1;
@@ -25,6 +26,7 @@ import com.vaadin.flow.component.textfield.PasswordField;
 import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.value.ValueChangeMode;
+import com.vaadin.flow.dom.Style;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import lombok.extern.slf4j.Slf4j;
@@ -36,6 +38,7 @@ public class ClientsView extends AnonymousVerticalLayout {
 
     private final Map<Long, Div> clientRows = new HashMap<>();
     private final Map<Long, String> selectedClients = new HashMap<>();
+    private final Div clientsContainer = new Div();
 
     public ClientsView(AuthorizationServerService authorizationServerService, OAuth2ClientService oAuth2ClientService) {
 
@@ -53,11 +56,82 @@ public class ClientsView extends AnonymousVerticalLayout {
         ));
         deleteButton.setEnabled(false);
 
+        Button createButton = new Button("Nuovo client");
+        createButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        createButton.addClickListener(event -> showCreateClientDialog(
+                authorizationServer,
+                oAuth2ClientService,
+                deleteButton
+        ));
+
+        clientsContainer.setWidthFull();
+
         for (OAuth2ClientDto oAuth2ClientDto : oAuth2ClientService.getAllOAuth2Clients()) {
-            add(createClientRow(authorizationServer, oAuth2ClientService, oAuth2ClientDto, deleteButton));
+            clientsContainer.add(createClientRow(authorizationServer, oAuth2ClientService, oAuth2ClientDto, deleteButton));
         }
 
-        add(deleteButton);
+        add(clientsContainer);
+
+        Div actions = new Div(createButton, deleteButton);
+        actions.getStyle()
+                .setDisplay(Style.Display.FLEX)
+                .setGap("var(--lumo-space-s)");
+
+        add(actions);
+    }
+
+    private void showCreateClientDialog(AuthorizationServerDto authorizationServer, OAuth2ClientService service, Button deleteButton) {
+
+        Dialog dialog = new Dialog();
+        dialog.setHeaderTitle("Nuovo client");
+        dialog.setWidth("500px");
+        dialog.setMaxWidth("90vw");
+
+        TextField clientId = new TextField("Client ID");
+        clientId.getStyle().set("overflow", "hidden");
+        clientId.setWidthFull();
+
+        Button cancel = new Button("Annulla", event -> dialog.close());
+
+        Button create = new Button("Crea", event -> {
+            try {
+                String clientIdValue = clientId.getValue().trim();
+
+                if (clientIdValue.isBlank()) {
+                    clientId.setInvalid(true);
+                    clientId.setErrorMessage("Il Client ID è obbligatorio");
+                    return;
+                }
+
+                if (service.existsByClientId(clientIdValue)) {
+                    clientId.setInvalid(true);
+                    clientId.setErrorMessage("Il Client ID esiste già");
+                    return;
+                }
+
+                OAuth2ClientDto client = service.createOAuth2Client(clientIdValue);
+                log.info("Client {} creato con successo", clientIdValue);
+
+                Div row = createClientRow(authorizationServer, service, client, deleteButton);
+                clientsContainer.add(row);
+
+                dialog.close();
+
+                openClientCreatedNotification(clientIdValue);
+
+            } catch (Exception e) {
+                log.error("Errore durante la creazione del client {}", clientId.getValue(), e);
+                clientId.setInvalid(true);
+                clientId.setErrorMessage("Client ID già esistente");
+            }
+        });
+
+        create.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+
+        dialog.add(clientId);
+        dialog.getFooter().add(cancel, create);
+
+        dialog.open();
     }
 
     private void showDeleteConfirmation(
@@ -75,7 +149,7 @@ public class ClientsView extends AnonymousVerticalLayout {
                 for (Long id : clientIds) {
                     Div row = clientRows.remove(id);
                     if (row != null) {
-                        remove(row);
+                        clientsContainer.remove(row);
                     }
                 }
 
@@ -120,7 +194,7 @@ public class ClientsView extends AnonymousVerticalLayout {
 
         Checkbox selected = new Checkbox();
         selected.getElement().setAttribute("aria-label", "Seleziona client " + client.clientId());
-        selected.getStyle().set("margin-top", "1.05rem");
+        selected.getStyle().setMarginTop("1.05rem");
         selected.addValueChangeListener(event -> {
             if (Boolean.TRUE.equals(event.getValue())) {
                 selectedClients.put(client.id(), client.clientId());
@@ -135,9 +209,9 @@ public class ClientsView extends AnonymousVerticalLayout {
         details.setWidthFull();
 
         Div row = new Div(selected, details);
-        row.getStyle().set("display", "flex")
-                .set("align-items", "flex-start")
-                .set("width", "100%");
+        row.getStyle().setDisplay(Style.Display.FLEX)
+                      .setAlignItems(Style.AlignItems.FLEX_START)
+                      .setWidth("100%");
 
         clientRows.put(client.id(), row);
 
@@ -151,7 +225,7 @@ public class ClientsView extends AnonymousVerticalLayout {
         Span title = new Span(oAuth2ClientDto.clientId());
         title.getStyle().setFontWeight("bold");
 
-        Span subtitle = new Span(oAuth2ClientDto.description());
+        Span subtitle = new Span(getDescription(oAuth2ClientDto.description()));
         subtitle.getStyle()
                 .set("font-style", "italic")
                 .setFontSize("var(--lumo-font-size-s)");
@@ -159,13 +233,19 @@ public class ClientsView extends AnonymousVerticalLayout {
         Div summary = new Div();
         summary.add(title, subtitle);
         summary.getStyle()
-                .set("display", "flex")
-                .set("flex-direction", "column")
-                .set("gap", "0");
+                .setDisplay(Style.Display.FLEX)
+                .setFlexDirection(Style.FlexDirection.COLUMN)
+                .setGap("0");
 
         return new Details(
                 summary, createClientPanel(authorizationServer, oAuth2ClientService, oAuth2ClientDto, subtitle)
         );
+    }
+
+    private String getDescription(String descrizione) {
+        return (null == descrizione || descrizione.isBlank())
+                ? "Nessuna descrizione"
+                : descrizione;
     }
 
     private FormLayout createClientPanel(AuthorizationServerDto authorizationServerDto,
@@ -187,7 +267,7 @@ public class ClientsView extends AnonymousVerticalLayout {
         description.setValue(oAuth2ClientDto.description());
         description.setValueChangeMode(ValueChangeMode.EAGER);
         description.addValueChangeListener(event ->
-                subtitle.setText(event.getValue())
+                subtitle.setText(getDescription(event.getValue()))
         );
         layout.setColspan(description, 2);
 
@@ -282,9 +362,19 @@ public class ClientsView extends AnonymousVerticalLayout {
         return layout;
     }
 
+    private Span getClientSpan() {
+        return new Span("Client ");
+    }
+
+    private void openClientCreatedNotification(String clientName) {
+        Span message = getClientSpan();
+        message.add(getClientName(clientName));
+        message.add(" creato");
+        openNotificationElement(message);
+    }
+
     private void openClientsDeletedNotification(List<String> clientNames) {
-        Span message = new Span();
-        message.add("Client ");
+        Span message = getClientSpan();
         message.add(getClientName(String.join(", ", clientNames)));
         message.add(clientNames.size() > 1 ? " eliminati" : " eliminato");
         openNotificationElement(message);
@@ -296,8 +386,7 @@ public class ClientsView extends AnonymousVerticalLayout {
     }
 
     private void openClientUpdatedNotification(String name) {
-        Span message = new Span();
-        message.add("Client ");
+        Span message = getClientSpan();
         message.add(getClientName(name));
         message.add(" aggiornato");
         openNotificationElement(message);

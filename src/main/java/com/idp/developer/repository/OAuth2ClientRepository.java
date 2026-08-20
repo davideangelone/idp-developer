@@ -22,4 +22,6 @@ public interface OAuth2ClientRepository extends JpaRepository<OAuth2Client, Long
     @NonNull
     @Override
     List<OAuth2Client> findAll();
+
+    boolean existsByClientId(@NonNull String clientId);
 }
