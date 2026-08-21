@@ -3,6 +3,8 @@ authorization-server:
   supported-authentication-methods: [none, client_secret_basic]
   supported-scopes: [openid, profile, email, address, phone]
   supported-grant-types: [authorization_code, refresh_token, client_credentials]
+  supported-roles: [ADMIN, USER]
+  supported-groups: [administrators, developers, managers, users]
   free-login: true
 
 jwt:

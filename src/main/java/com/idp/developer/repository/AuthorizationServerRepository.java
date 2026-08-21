@@ -8,6 +8,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface AuthorizationServerRepository extends JpaRepository<AuthorizationServer, Long> {
 
-    @EntityGraph(attributePaths = {"supportedAuthenticationMethods", "supportedScopes", "supportedGrantTypes"})
+    @EntityGraph(attributePaths = {"supportedAuthenticationMethods", "supportedScopes", "supportedGrantTypes", "supportedRoles", "supportedGroups"})
     Optional<AuthorizationServer> findFirstByOrderByIdAsc();
 }

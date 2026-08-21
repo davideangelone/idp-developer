@@ -49,6 +49,22 @@ public class AuthorizationServer {
     )
     private Set<OAuth2GrantType> supportedGrantTypes;
 
+    @ManyToMany
+    @JoinTable(
+            name = "authorization_server_role",
+            joinColumns = @JoinColumn(name = "authorization_server_id"),
+            inverseJoinColumns = @JoinColumn(name = "role_id")
+    )
+    private Set<Role> supportedRoles;
+
+    @ManyToMany
+    @JoinTable(
+            name = "authorization_server_group",
+            joinColumns = @JoinColumn(name = "authorization_server_id"),
+            inverseJoinColumns = @JoinColumn(name = "group_id")
+    )
+    private Set<Group> supportedGroups;
+
     @Column(nullable = false)
     private boolean freeLogin;
 }

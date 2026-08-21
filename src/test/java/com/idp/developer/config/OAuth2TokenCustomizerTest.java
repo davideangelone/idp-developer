@@ -3,7 +3,10 @@ package com.idp.developer.config;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
+import com.idp.developer.entity.Group;
+import com.idp.developer.entity.Role;
 import com.idp.developer.entity.User;
 import com.idp.developer.mapper.UserDtoMapper;
 import com.idp.developer.model.OAuth2ClaimDto;
@@ -11,6 +14,7 @@ import com.idp.developer.model.UserDto;
 import com.idp.developer.security.UserJwtTokenCustomizer;
 import com.idp.developer.service.CustomUserDetailsService;
 import com.idp.developer.service.OAuth2ClaimService;
+import org.jspecify.annotations.NonNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -147,6 +151,28 @@ class OAuth2TokenCustomizerTest {
     }
 
     private CustomUserDetailsService.CustomUserDetails getCustomUserDetails(UserDto userDto) {
+        Set<Role> userRoles = userDto.groups().stream()
+                .map(roleDto -> {
+                    Role role = new Role();
+                    role.setName(roleDto);
+                    return role;
+                })
+                .collect(Collectors.toSet());
+
+        Set<Group> userGroups = userDto.groups().stream()
+                .map(groupDto -> {
+                    Group group = new Group();
+                    group.setName(groupDto);
+                    return group;
+                })
+                .collect(Collectors.toSet());
+
+        User user = createUser(userDto, userRoles, userGroups);
+
+        return new CustomUserDetailsService.CustomUserDetails(user);
+    }
+
+    private @NonNull User createUser(UserDto userDto, Set<Role> userRoles, Set<Group> userGroups) {
         User user = new User();
         user.setId(10L);
         user.setUsername(userDto.username());
@@ -156,12 +182,11 @@ class OAuth2TokenCustomizerTest {
         user.setLastName(userDto.lastName());
         user.setAddress(userDto.address());
         user.setPhoneNumber(userDto.phoneNumber());
-        user.setRoles(userDto.roles());
-        user.setGroups(userDto.groups());
+        user.setRoles(userRoles);
+        user.setGroups(userGroups);
         user.setEnabled(true);
         user.setEmailVerified(true);
-
-        return new CustomUserDetailsService.CustomUserDetails(user);
+        return user;
     }
 
     @Test

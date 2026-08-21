@@ -1,6 +1,7 @@
 package com.idp.developer.service;
 
 import java.util.Collection;
+import java.util.stream.Stream;
 
 import com.idp.developer.entity.User;
 import com.idp.developer.repository.UserRepository;
@@ -35,9 +36,12 @@ public class CustomUserDetailsService implements UserDetailsService {
 
         @Override
         public @NonNull Collection<? extends GrantedAuthority> getAuthorities() {
-            return user.getRoles().stream()
-                    .map(role -> new SimpleGrantedAuthority("ROLE_" + role))
-                    .toList();
+            return Stream.concat(
+                        user.getRoles().stream()
+                                .map(role -> new SimpleGrantedAuthority("ROLE_" + role.getName())),
+                        user.getGroups().stream()
+                                .map(group -> new SimpleGrantedAuthority("GROUP_" + group.getName()))
+                    ).toList();
         }
 
         @Override

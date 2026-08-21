@@ -7,20 +7,24 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.idp.developer.entity.AuthorizationServer;
+import com.idp.developer.entity.Group;
 import com.idp.developer.entity.OAuth2AuthenticationMethod;
 import com.idp.developer.entity.OAuth2Claim;
 import com.idp.developer.entity.OAuth2Client;
 import com.idp.developer.entity.OAuth2GrantType;
 import com.idp.developer.entity.OAuth2Scope;
+import com.idp.developer.entity.Role;
 import com.idp.developer.entity.User;
 import com.idp.developer.properties.ConfigProperties;
 import com.idp.developer.properties.OAuth2ClientProperties;
 import com.idp.developer.repository.AuthorizationServerRepository;
+import com.idp.developer.repository.GroupRepository;
 import com.idp.developer.repository.OAuth2AuthenticationMethodRepository;
 import com.idp.developer.repository.OAuth2ClaimRepository;
 import com.idp.developer.repository.OAuth2ClientRepository;
 import com.idp.developer.repository.OAuth2GrantTypeRepository;
 import com.idp.developer.repository.OAuth2ScopeRepository;
+import com.idp.developer.repository.RoleRepository;
 import com.idp.developer.repository.UserRepository;
 import com.idp.developer.service.AuthorizationServerService;
 import lombok.extern.slf4j.Slf4j;
@@ -42,6 +46,8 @@ public class DataInitializer {
             OAuth2ScopeRepository scopeRepository,
             OAuth2ClaimRepository claimRepository,
             OAuth2GrantTypeRepository grantTypeRepository,
+            RoleRepository roleRepository,
+            GroupRepository groupRepository,
             PasswordEncoder passwordEncoder,
             ConfigProperties configProperties,
             AuthorizationServerService authorizationServerService) {
@@ -52,10 +58,12 @@ public class DataInitializer {
             Map<String, OAuth2Scope> scopes = initScopes(claimRepository, scopeRepository, configProperties);
             Map<String, OAuth2AuthenticationMethod> authenticationMethods = initAuthenticationMethods(authenticationMethodRepository, configProperties);
             Map<String, OAuth2GrantType> grantTypes = initGrantTypes(grantTypeRepository, configProperties);
+            Map<String, Role> roles = initRoles(roleRepository, configProperties);
+            Map<String, Group> groups = initGroups(groupRepository, configProperties);
 
-            initAuthorizationServer(authenticationMethods, scopes, grantTypes, authorizationServerRepository, configProperties);
+            initAuthorizationServer(authenticationMethods, scopes, grantTypes, roles, groups, authorizationServerRepository, configProperties);
             initClients(authenticationMethods, scopes, grantTypes, clientRepository, configProperties);
-            initUsers(userRepository, passwordEncoder, configProperties);
+            initUsers(userRepository, passwordEncoder, roles, groups, configProperties);
             authorizationServerService.markInitialized();
         };
     }
@@ -144,10 +152,48 @@ public class DataInitializer {
         return grantTypes;
     }
 
+    private Map<String, Role> initRoles(RoleRepository roleRepository,
+                                        ConfigProperties configProperties) {
+
+        Map<String, Role> roles = new HashMap<>();
+
+        for (String name : configProperties.getAuthorizationServer().getSupportedRoles()) {
+            Role role = roleRepository.findByName(name);
+            if (null == role) {
+                role = new Role();
+                role.setName(name);
+                role = roleRepository.save(role);
+            }
+            roles.put(role.getName(), role);
+        }
+
+        return roles;
+    }
+
+    private Map<String, Group> initGroups(GroupRepository groupRepository,
+                                          ConfigProperties configProperties) {
+
+        Map<String, Group> groups = new HashMap<>();
+
+        for (String name : configProperties.getAuthorizationServer().getSupportedGroups()) {
+            Group group = groupRepository.findByName(name);
+            if (null == group) {
+                group = new Group();
+                group.setName(name);
+                group = groupRepository.save(group);
+            }
+            groups.put(group.getName(), group);
+        }
+
+        return groups;
+    }
+
     private void initAuthorizationServer(
             Map<String, OAuth2AuthenticationMethod> authenticationMethods,
             Map<String, OAuth2Scope> scopes,
             Map<String, OAuth2GrantType> grantTypes,
+            Map<String, Role> roles,
+            Map<String, Group> groups,
             AuthorizationServerRepository authorizationServerRepository,
             ConfigProperties configProperties) {
 
@@ -178,15 +224,37 @@ public class DataInitializer {
                         .collect(Collectors.toSet())
         );
 
+        authorizationServer.setSupportedRoles(
+                properties.getSupportedRoles().stream()
+                        .map(roles::get)
+                        .collect(Collectors.toSet())
+        );
+
+        authorizationServer.setSupportedGroups(
+                properties.getSupportedGroups().stream()
+                        .map(groups::get)
+                        .collect(Collectors.toSet())
+        );
+
         authorizationServerRepository.save(authorizationServer);
     }
 
     private void initUsers(
             UserRepository userRepository,
             PasswordEncoder passwordEncoder,
+            Map<String, Role> roles,
+            Map<String, Group> groups,
             ConfigProperties configProperties) {
 
         configProperties.getUsers().forEach(userProperties -> {
+
+            Set<Role> userRoles = userProperties.getRoles().stream()
+                    .map(roles::get)
+                    .collect(Collectors.toSet());
+
+            Set<Group> userGroups = userProperties.getGroups().stream()
+                    .map(groups::get)
+                    .collect(Collectors.toSet());
 
             User user = userRepository
                     .findByUsername(userProperties.getUsername())
@@ -199,8 +267,8 @@ public class DataInitializer {
             user.setEmail(userProperties.getEmail());
             user.setAddress(userProperties.getAddress());
             user.setPhoneNumber(userProperties.getPhoneNumber());
-            user.setRoles(userProperties.getRoles());
-            user.setGroups(userProperties.getGroups());
+            user.setRoles(userRoles);
+            user.setGroups(userGroups);
             user.setEnabled(true);
             user.setEmailVerified(true);
 

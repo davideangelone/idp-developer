@@ -1,7 +1,13 @@
 package com.idp.developer.service;
 
+import java.util.Optional;
+import java.util.Set;
+
+import com.idp.developer.entity.Group;
+import com.idp.developer.entity.Role;
 import com.idp.developer.entity.User;
 import com.idp.developer.repository.UserRepository;
+import org.jspecify.annotations.NonNull;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -11,9 +17,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-
-import java.util.Optional;
-import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -31,19 +34,7 @@ class CustomUserDetailsServiceTest {
     @Test
     @DisplayName("loadUserByUsername restituisce i dettagli per un utente esistente")
     void loadUserByUsername_existingUser_returnsDetails() {
-        User user = new User();
-        user.setId(1L);
-        user.setUsername("test");
-        user.setEmail("test@example.com");
-        user.setPassword("encoded-password");
-        user.setFirstName("Mario");
-        user.setLastName("Rossi");
-        user.setAddress("Via Roma 1, Bologna");
-        user.setPhoneNumber("+39 333 1234567");
-        user.setRoles(Set.of("USER"));
-        user.setGroups(Set.of("users"));
-        user.setEnabled(true);
-        user.setEmailVerified(true);
+        User user = getUser();
 
         when(userRepository.findByUsername("test")).thenReturn(Optional.of(user));
 
@@ -56,11 +47,34 @@ class CustomUserDetailsServiceTest {
         assertThat(details.isAccountNonExpired()).isTrue();
         assertThat(details.isAccountNonLocked()).isTrue();
         assertThat(details.isCredentialsNonExpired()).isTrue();
-        assertThat(details.getAuthorities()).hasSize(1);
+        assertThat(details.getAuthorities()).hasSize(2);
         assertThat(details.getAuthorities())
                 .extracting(GrantedAuthority::getAuthority)
-                .containsExactly("ROLE_USER");
+                .containsExactlyInAnyOrder("ROLE_USER", "GROUP_users");
         assertThat(((CustomUserDetailsService.CustomUserDetails) details).user()).isSameAs(user);
+    }
+
+    private @NonNull User getUser() {
+        Role role = new Role();
+        role.setName("USER");
+
+        Group group = new Group();
+        group.setName("users");
+
+        User user = new User();
+        user.setId(1L);
+        user.setUsername("test");
+        user.setEmail("test@example.com");
+        user.setPassword("encoded-password");
+        user.setFirstName("Mario");
+        user.setLastName("Rossi");
+        user.setAddress("Via Roma 1, Bologna");
+        user.setPhoneNumber("+39 333 1234567");
+        user.setRoles(Set.of(role));
+        user.setGroups(Set.of(group));
+        user.setEnabled(true);
+        user.setEmailVerified(true);
+        return user;
     }
 
     @Test

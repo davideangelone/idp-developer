@@ -42,6 +42,8 @@ public class ConfigurationView extends AnonymousVerticalLayout {
                 readOnlyField("Supported authentication methods", authorizationServer.supportedAuthenticationMethods()),
                 readOnlyField("Supported scopes", authorizationServer.supportedScopes()),
                 readOnlyField("Supported grant types", authorizationServer.supportedGrantTypes()),
+                readOnlyField("Supported roles", authorizationServer.supportedRoles()),
+                readOnlyField("Supported groups", authorizationServer.supportedGroups()),
                 freeLogin
         );
 

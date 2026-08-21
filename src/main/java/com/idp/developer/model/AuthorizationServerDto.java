@@ -8,6 +8,8 @@ public record AuthorizationServerDto(
         Set<String> supportedAuthenticationMethods,
         Set<String> supportedScopes,
         Set<String> supportedGrantTypes,
+        Set<String> supportedRoles,
+        Set<String> supportedGroups,
         boolean freeLogin
 ) {
 }

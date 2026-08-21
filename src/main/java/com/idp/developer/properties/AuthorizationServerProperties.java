@@ -10,5 +10,7 @@ public class AuthorizationServerProperties {
     private List<String> supportedAuthenticationMethods;
     private List<String> supportedScopes;
     private List<String> supportedGrantTypes;
+    private List<String> supportedRoles;
+    private List<String> supportedGroups;
     private boolean freeLogin;
 }
