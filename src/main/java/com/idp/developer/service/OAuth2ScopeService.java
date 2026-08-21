@@ -11,16 +11,16 @@ import org.springframework.stereotype.Service;
 public class OAuth2ScopeService {
 
     private final OAuth2ScopeRepository oAuth2ScopeRepository;
-    private final OAuth2ScopeDtoMapper aAuth2ScopeDtoMapper;
+    private final OAuth2ScopeDtoMapper oAuth2ScopeDtoMapper;
 
-    public OAuth2ScopeService(OAuth2ScopeRepository oAuth2ScopeRepository, OAuth2ScopeDtoMapper aAuth2ScopeDtoMapper) {
+    public OAuth2ScopeService(OAuth2ScopeRepository oAuth2ScopeRepository, OAuth2ScopeDtoMapper oAuth2ScopeDtoMapper) {
         this.oAuth2ScopeRepository = oAuth2ScopeRepository;
-        this.aAuth2ScopeDtoMapper = aAuth2ScopeDtoMapper;
+        this.oAuth2ScopeDtoMapper = oAuth2ScopeDtoMapper;
     }
 
     public List<OAuth2ScopeDto> getAllScopes() {
         return oAuth2ScopeRepository.findAll().stream()
-                .map(aAuth2ScopeDtoMapper::toDto)
+                .map(oAuth2ScopeDtoMapper::toDto)
                 .toList();
     }
 
