@@ -19,6 +19,7 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.idp.developer.properties.OAuth2ClientProperties;
 import com.idp.developer.properties.UserProperties;
 import com.idp.developer.repository.UserRepository;
 import com.nimbusds.jose.JWSHeader;
@@ -502,5 +503,125 @@ class AuthorizationCodeFlowE2ETest extends AbstractIdpIntegrationMockMvcTest {
             return m2.group(1);
         }
         return null;
+    }
+
+    @Test
+    @DisplayName("Public client + PKCE: Authorization Code Flow senza autenticazione client")
+    void publicClient_withPkce_completesAuthorizationCodeFlow() throws Exception {
+
+        OAuth2ClientProperties publicClient = configProperties.getOauth2Clients()
+                .stream()
+                .filter(client -> "public-client".equals(client.getClientId()))
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException("public-client not configured"));
+
+        assertThat(publicClient.getClientSecret()).isEmpty();
+        assertThat(publicClient.getClientAuthenticationMethods()).containsExactly("none");
+        assertThat(publicClient.isRequireProofKey()).isTrue();
+        assertThat(publicClient.getAuthorizationGrantTypes()).contains("authorization_code");
+
+        String redirectUri = publicClient.getRedirectUris().getFirst();
+
+        String codeVerifier = generateCodeVerifier();
+        String codeChallenge = generateCodeChallenge(codeVerifier);
+        String state = generateRandomState();
+
+        // 1. Authorization request
+        String authQuery = "response_type=code"
+                + "&client_id=" + publicClient.getClientId()
+                + "&redirect_uri=" + URLEncoder.encode(redirectUri, StandardCharsets.UTF_8)
+                + "&scope=" + URLEncoder.encode("openid profile email", StandardCharsets.UTF_8)
+                + "&state=" + state
+                + "&code_challenge=" + codeChallenge
+                + "&code_challenge_method=S256";
+
+        HttpResponse<String> authResponse = httpClient.send(
+                request(URI.create(baseUrl + "/oauth2/authorize?" + authQuery))
+                        .header("Accept", "text/html")
+                        .GET()
+                        .build(),
+                HttpResponse.BodyHandlers.ofString());
+
+        assertThat(authResponse.statusCode()).isEqualTo(HttpStatus.FOUND.value());
+        assertThat(locationOf(authResponse)).contains("/login");
+
+        // 2. Login
+        HttpResponse<String> loginResponse = getLoginResponse(resolve(locationOf(authResponse)));
+        assertThat(locationOf(loginResponse)).contains("/oauth2/authorize");
+
+        // 3. Consent
+        HttpResponse<String> consentPage = httpClient.send(
+                request(resolve(locationOf(loginResponse)))
+                        .header("Accept", "text/html")
+                        .GET()
+                        .build(),
+                HttpResponse.BodyHandlers.ofString());
+
+        assertThat(consentPage.statusCode()).isEqualTo(HttpStatus.OK.value());
+
+        String consentState = extractInputValue(consentPage.body(), "state");
+        List<String> scopes = extractScopeValues(consentPage.body());
+
+        assertThat(scopes) .containsExactlyInAnyOrder("profile", "email");
+
+        StringBuilder consentBody = new StringBuilder()
+                .append("client_id=").append(publicClient.getClientId())
+                .append("&state=").append(consentState);
+
+        for (String scope : scopes) {
+            consentBody.append("&scope=").append(scope);
+        }
+
+        HttpResponse<String> consentResponse = httpClient.send(
+                request(URI.create(baseUrl + "/oauth2/authorize"))
+                        .header("Content-Type", "application/x-www-form-urlencoded")
+                        .POST(HttpRequest.BodyPublishers.ofString(
+                                consentBody.toString()))
+                        .build(),
+                HttpResponse.BodyHandlers.ofString());
+
+        assertThat(consentResponse.statusCode()).isEqualTo(HttpStatus.FOUND.value());
+
+        String codeLocation = locationOf(consentResponse);
+        assertThat(codeLocation).startsWith(redirectUri);
+        assertThat(extractParam(codeLocation, "state")).isEqualTo(state);
+
+        String code = extractParam(codeLocation, "code");
+
+        assertThat(code)
+                .isNotNull()
+                .isNotEmpty();
+
+        // 4. Token exchange.
+        //
+        // IMPORTANT:
+        // no Authorization header and no client_secret are sent.
+        String tokenBody = "grant_type=authorization_code"
+                + "&client_id=" + URLEncoder.encode(
+                publicClient.getClientId(), StandardCharsets.UTF_8)
+                + "&code=" + code
+                + "&redirect_uri="
+                + URLEncoder.encode(redirectUri, StandardCharsets.UTF_8)
+                + "&code_verifier=" + codeVerifier;
+
+        HttpResponse<String> tokenResponse = httpClient.send(
+                request(URI.create(baseUrl + "/oauth2/token"))
+                        .header("Content-Type",
+                                "application/x-www-form-urlencoded")
+                        .POST(HttpRequest.BodyPublishers.ofString(tokenBody))
+                        .build(),
+                HttpResponse.BodyHandlers.ofString());
+
+        assertThat(tokenResponse.statusCode()).isEqualTo(HttpStatus.OK.value());
+
+        Map<String, Object> tokens = parseJson(tokenResponse.body());
+
+        assertThat(tokens)
+                .containsKeys(
+                        "access_token",
+                        "id_token",
+                        "token_type",
+                        "expires_in")
+                .containsEntry("token_type", "Bearer");
     }
 }
