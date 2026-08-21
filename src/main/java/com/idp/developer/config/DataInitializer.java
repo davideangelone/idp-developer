@@ -249,11 +249,11 @@ public class DataInitializer {
         configProperties.getUsers().forEach(userProperties -> {
 
             Set<Role> userRoles = userProperties.getRoles().stream()
-                    .map(roles::get)
+                    .map(role -> getRole(roles, role, userProperties.getUsername()))
                     .collect(Collectors.toSet());
 
             Set<Group> userGroups = userProperties.getGroups().stream()
-                    .map(groups::get)
+                    .map(group -> getGroup(groups, group, userProperties.getUsername()))
                     .collect(Collectors.toSet());
 
             User user = userRepository
@@ -351,5 +351,23 @@ public class DataInitializer {
         }
 
         return grantType;
+    }
+
+    private Role getRole(Map<String, Role> roles, String name, String username) {
+        Role role = roles.get(name);
+        if (role == null) {
+            throw new IllegalStateException("Role [" + name + "] non valido per l'utente [" + username + "], valori validi " + roles.keySet());
+        }
+
+        return role;
+    }
+
+    private Group getGroup(Map<String, Group> groups, String name, String username) {
+        Group group = groups.get(name);
+        if (group == null) {
+            throw new IllegalStateException("Group [" + name + "] non valido per l'utente [" + username + "], valori validi " + groups.keySet());
+        }
+
+        return group;
     }
 }
