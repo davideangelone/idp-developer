@@ -269,8 +269,11 @@ public class DataInitializer {
             user.setPhoneNumber(userProperties.getPhoneNumber());
             user.setRoles(userRoles);
             user.setGroups(userGroups);
-            user.setEnabled(true);
             user.setEmailVerified(true);
+            user.setAccountNonExpired(true);
+            user.setAccountNonLocked(true);
+            user.setCredentialsNonExpired(true);
+            user.setEnabled(true);
 
             userRepository.save(user);
         });
