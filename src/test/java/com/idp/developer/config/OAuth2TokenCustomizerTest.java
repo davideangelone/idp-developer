@@ -6,11 +6,11 @@ import java.util.Set;
 
 import com.idp.developer.entity.User;
 import com.idp.developer.mapper.UserDtoMapper;
+import com.idp.developer.model.OAuth2ClaimDto;
 import com.idp.developer.model.UserDto;
-import com.idp.developer.properties.ClaimsProperties;
-import com.idp.developer.properties.ConfigProperties;
 import com.idp.developer.security.UserJwtTokenCustomizer;
 import com.idp.developer.service.CustomUserDetailsService;
+import com.idp.developer.service.OAuth2ClaimService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -42,20 +42,24 @@ class OAuth2TokenCustomizerTest {
     private JwtClaimsSet.Builder claimsBuilder;
 
     @Mock
-    private ConfigProperties configProperties;
+    private UserDtoMapper userDtoMapper;
 
     @Mock
-    private UserDtoMapper userDtoMapper;
+    private OAuth2ClaimService oAuth2ClaimService;
 
     private UserJwtTokenCustomizer userJwtTokenCustomizer;
 
     private UserDto userDto;
 
-    private ClaimsProperties claimsProperties;
+    Map<String, List<OAuth2ClaimDto>> scopedClaimsMap;
+
+    private List<OAuth2ClaimDto> alwaysClaims;
+
+    private List<OAuth2ClaimDto> allClaims;
 
     @BeforeEach
     void setUp() {
-        userJwtTokenCustomizer = new UserJwtTokenCustomizer(configProperties, userDtoMapper);
+        userJwtTokenCustomizer = new UserJwtTokenCustomizer(userDtoMapper, oAuth2ClaimService);
         userDto = new UserDto(1L, "Mario", "Rossi",
                 "test", "password",
                 "test@email.com", true,
@@ -63,40 +67,42 @@ class OAuth2TokenCustomizerTest {
                 Set.of("USER"), Set.of("users")
         );
 
-
-        claimsProperties = new ClaimsProperties();
-
-        claimsProperties.setAlways(Map.of(
-                "roles", "roles",
-                "groups", "groups"
-        ));
-
-        var profile = Map.of(
-                "name", "fullName",
-                "given_name", "firstName",
-                "family_name", "lastName",
-                "preferred_username", "username"
+        alwaysClaims = List.of(
+                new OAuth2ClaimDto(1L, true, "roles", "roles"),
+                new OAuth2ClaimDto(2L, true, "groups", "groups")
         );
 
-        var email = Map.of(
-                "email", "email",
-                "email_verified", "emailVerified"
+        allClaims = List.of(
+                new OAuth2ClaimDto(1L, true, "roles", "roles"),
+                new OAuth2ClaimDto(2L, true, "groups", "groups"),
+                new OAuth2ClaimDto(3L, false, "name", "fullName"),
+                new OAuth2ClaimDto(4L, false, "given_name", "firstName"),
+                new OAuth2ClaimDto(5L, false, "family_name", "lastName"),
+                new OAuth2ClaimDto(6L, false, "preferred_username", "username"),
+                new OAuth2ClaimDto(7L, false, "email", "email"),
+                new OAuth2ClaimDto(8L, false, "email_verified", "emailVerified"),
+                new OAuth2ClaimDto(9L, false, "address", "address"),
+                new OAuth2ClaimDto(10L, false, "phone_number", "phoneNumber")
         );
 
-        var address = Map.of(
-                "address", "address"
+        scopedClaimsMap = Map.of(
+                "profile", List.of(
+                        new OAuth2ClaimDto(3L, false, "name", "fullName"),
+                        new OAuth2ClaimDto(4L, false, "given_name", "firstName"),
+                        new OAuth2ClaimDto(5L, false, "family_name", "lastName"),
+                        new OAuth2ClaimDto(6L, false, "preferred_username", "username")
+                ),
+                "email", List.of(
+                        new OAuth2ClaimDto(7L, false, "email", "email"),
+                        new OAuth2ClaimDto(8L, false, "email_verified", "emailVerified")
+                ),
+                "address", List.of(
+                        new OAuth2ClaimDto(9L, false, "address", "address")
+                ),
+                "phone", List.of(
+                        new OAuth2ClaimDto(10L, false, "phone_number", "phoneNumber")
+                )
         );
-
-        var phone = Map.of(
-                "phone_number", "phoneNumber"
-        );
-
-        claimsProperties.setScopes(Map.of(
-                "profile", profile,
-                "email", email,
-                "address", address,
-                "phone", phone
-        ));
     }
 
     @Test
@@ -109,7 +115,9 @@ class OAuth2TokenCustomizerTest {
         when(context.getClaims()).thenReturn(claimsBuilder);
         when(context.getAuthorizedScopes()).thenReturn(Set.of("profile", "email", "address", "phone"));
         when(userDtoMapper.toDto(any(User.class))).thenReturn(userDto);
-        when(configProperties.getClaims()).thenReturn(claimsProperties);
+        when(oAuth2ClaimService.getAllClaims()).thenReturn(allClaims);
+        when(oAuth2ClaimService.getAlwaysClaims()).thenReturn(alwaysClaims);
+        when(oAuth2ClaimService.getScopedClaimsMap()).thenReturn(scopedClaimsMap);
 
         userJwtTokenCustomizer.customize(context);
 

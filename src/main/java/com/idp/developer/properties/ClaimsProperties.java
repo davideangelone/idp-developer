@@ -1,11 +1,13 @@
 package com.idp.developer.properties;
 
 import java.util.Map;
+import java.util.Set;
 
 import lombok.Data;
 
 @Data
 public class ClaimsProperties {
-    private Map<String, String> always;
-    private Map<String, Map<String, String>> scopes;
+    private Set<String> always;
+    private Map<String, Set<String>> scopeMappings;
+    private Map<String, String> claimMappings;
 }

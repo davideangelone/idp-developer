@@ -58,7 +58,6 @@ public abstract class AbstractIdpIntegrationMockMvcTest {
 
     protected OAuth2ClientProperties getOauth2Client() {
         return configProperties.getOauth2Clients()
-                .values()
                 .stream()
                 .findFirst()
                 .orElseThrow(() -> new IllegalStateException("Nessun client OAuth2 configurato"));

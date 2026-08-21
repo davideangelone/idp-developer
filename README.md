@@ -584,26 +584,25 @@ jwt:
   key-password: changeit
 
 claims:
-  always:
+  always: [roles, groups]
+
+  scope-mappings:
+    profile: [name, given_name, family_name, preferred_username]
+    email: [email, email_verified]
+    address: [address]
+    phone: [phone_number]
+
+  claim-mappings:
     roles: roles
     groups: groups
-
-  scopes:
-    profile:
-      name: fullName
-      given_name: firstName
-      family_name: lastName
-      preferred_username: username
-
-    email:
-      email: email
-      email_verified: emailVerified
-
-    address:
-      address: address
-
-    phone:
-      phone_number: phoneNumber
+    name: fullName
+    given_name: firstName
+    family_name: lastName
+    preferred_username: username
+    email: email
+    email_verified: emailVerified
+    address: address
+    phone_number: phoneNumber
 ```
 
 File `config-oauth2-clients.yml` per la configurazione dei client Oauth2:

@@ -3,6 +3,7 @@ package com.idp.developer.config;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.idp.developer.entity.AuthorizationServer;
@@ -46,15 +47,15 @@ public class DataInitializer {
             AuthorizationServerService authorizationServerService) {
 
         return args -> {
+            initClaims(claimRepository, configProperties);
+
+            Map<String, OAuth2Scope> scopes = initScopes(claimRepository, scopeRepository, configProperties);
             Map<String, OAuth2AuthenticationMethod> authenticationMethods = initAuthenticationMethods(authenticationMethodRepository, configProperties);
-            Map<String, OAuth2Scope> scopes = initScopes(scopeRepository, configProperties);
             Map<String, OAuth2GrantType> grantTypes = initGrantTypes(grantTypeRepository, configProperties);
 
-            initAlwaysClaims(claimRepository, configProperties);
-            initScopeClaims(scopeRepository, claimRepository, configProperties);
             initAuthorizationServer(authenticationMethods, scopes, grantTypes, authorizationServerRepository, configProperties);
-            initUsers(userRepository, passwordEncoder, configProperties);
             initClients(authenticationMethods, scopes, grantTypes, clientRepository, configProperties);
+            initUsers(userRepository, passwordEncoder, configProperties);
             authorizationServerService.markInitialized();
         };
     }
@@ -79,70 +80,50 @@ public class DataInitializer {
         return authenticationMethods;
     }
 
-    private Map<String, OAuth2Scope> initScopes(OAuth2ScopeRepository scopeRepository,
-                                                ConfigProperties configProperties) {
+    private void initClaims(OAuth2ClaimRepository claimRepository,
+                            ConfigProperties configProperties) {
 
-        Map<String, OAuth2Scope> scopes = new HashMap<>();
+        Map<String, String> claimMappings = configProperties.getClaims().getClaimMappings();
+        Set<String> alwaysClaims = configProperties.getClaims().getAlways();
 
-        for (String name : configProperties.getAuthorizationServer().getSupportedScopes()) {
-
-            OAuth2Scope scope = scopeRepository.findByName(name);
-            if (null == scope) {
-                scope = new OAuth2Scope();
-                scope.setName(name);
-                scope = scopeRepository.save(scope);
-            }
-
-            scopes.put(scope.getName(), scope);
-        }
-
-        return scopes;
-    }
-
-    private void initAlwaysClaims(
-            OAuth2ClaimRepository claimRepository,
-            ConfigProperties configProperties) {
-
-        for (Map.Entry<String, String> entry : configProperties.getClaims().getAlways().entrySet()) {
+        for (Map.Entry<String, String> claimEntry : claimMappings.entrySet()) {
+            String claimName = claimEntry.getKey();
+            String userProperty = claimEntry.getValue();
 
             OAuth2Claim claim = claimRepository
-                    .findByScopeIsNullAndName(entry.getKey())
+                    .findByName(claimName)
                     .orElseGet(OAuth2Claim::new);
 
-            claim.setScope(null);
-            claim.setAlways(true);
-            claim.setName(entry.getKey());
-            claim.setUserProperty(entry.getValue());
+            claim.setAlways(alwaysClaims.contains(claimName));
+            claim.setName(claimName);
+            claim.setUserProperty(userProperty);
 
             claimRepository.save(claim);
         }
     }
 
-    private void initScopeClaims(OAuth2ScopeRepository scopeRepository,
-                                 OAuth2ClaimRepository claimRepository,
-                                 ConfigProperties configProperties) {
+    private Map<String, OAuth2Scope> initScopes(OAuth2ClaimRepository claimRepository,
+                                                OAuth2ScopeRepository scopeRepository,
+                                                ConfigProperties configProperties) {
 
-        for (Map.Entry<String, Map<String, String>> scopeClaims : configProperties.getClaims().getScopes().entrySet()) {
+        Map<String, OAuth2Scope> scopes = new HashMap<>();
+        Map<String, Set<String>> scopeMappings = configProperties.getClaims().getScopeMappings();
 
-            OAuth2Scope scope = scopeRepository.findByName(scopeClaims.getKey());
-            if (scope == null) {
-                continue;
-            }
+        for (String name : configProperties.getAuthorizationServer().getSupportedScopes()) {
+            Set<OAuth2Claim> claims = claimRepository.findByNameIn(scopeMappings.get(name));
 
-            for (Map.Entry<String, String> claimEntry : scopeClaims.getValue().entrySet()) {
+            OAuth2Scope scope = scopeRepository
+                    .findByName(name)
+                    .orElseGet(OAuth2Scope::new);
 
-                OAuth2Claim claim = claimRepository
-                        .findByScopeAndName(scope, claimEntry.getKey())
-                        .orElseGet(OAuth2Claim::new);
+            scope.setName(name);
+            scope.setClaims(claims);
+            scopeRepository.save(scope);
 
-                claim.setScope(scope);
-                claim.setAlways(false);
-                claim.setName(claimEntry.getKey());
-                claim.setUserProperty(claimEntry.getValue());
-
-                claimRepository.save(claim);
-            }
+            scopes.put(scope.getName(), scope);
         }
+
+        return scopes;
     }
 
     private Map<String, OAuth2GrantType> initGrantTypes(OAuth2GrantTypeRepository grantTypeRepository,
@@ -267,8 +248,8 @@ public class DataInitializer {
             client.setReuseRefreshTokens(clientProperties.isReuseRefreshTokens());
 
             List<String> scopesNames = client.getScopes().stream()
-                                                         .map(OAuth2Scope::getName)
-                                                         .toList();
+                    .map(OAuth2Scope::getName)
+                    .toList();
             log.info("Inizializzazione client '{}' scopes: {}", client.getClientId(), scopesNames);
             clientRepository.save(client);
         }

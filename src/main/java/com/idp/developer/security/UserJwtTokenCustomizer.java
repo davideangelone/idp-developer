@@ -1,14 +1,18 @@
 package com.idp.developer.security;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import com.idp.developer.entity.User;
 import com.idp.developer.mapper.UserDtoMapper;
+import com.idp.developer.model.OAuth2ClaimDto;
 import com.idp.developer.model.UserDto;
-import com.idp.developer.properties.ConfigProperties;
 import com.idp.developer.service.CustomUserDetailsService;
+import com.idp.developer.service.OAuth2ClaimService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.server.authorization.token.JwtEncodingContext;
@@ -32,12 +36,12 @@ public class UserJwtTokenCustomizer implements OAuth2TokenCustomizer<JwtEncoding
             "phoneNumber", UserDto::phoneNumber
     );
 
-    private final ConfigProperties configProperties;
     private final UserDtoMapper userDtoMapper;
+    private final OAuth2ClaimService oAuth2ClaimService;
 
-    public UserJwtTokenCustomizer(ConfigProperties configProperties, UserDtoMapper userDtoMapper) {
-        this.configProperties = configProperties;
+    public UserJwtTokenCustomizer(UserDtoMapper userDtoMapper, OAuth2ClaimService oAuth2ClaimService) {
         this.userDtoMapper = userDtoMapper;
+        this.oAuth2ClaimService = oAuth2ClaimService;
     }
 
     @Override
@@ -72,14 +76,32 @@ public class UserJwtTokenCustomizer implements OAuth2TokenCustomizer<JwtEncoding
 
     private void addUserClaims(JwtEncodingContext context, UserDto userDto) {
         context.getClaims().subject(String.valueOf(userDto.id()));
-        addMappings(context, userDto, configProperties.getClaims().getAlways());
 
-        for (String scope : context.getAuthorizedScopes()) {
-            var mappings = configProperties.getClaims().getScopes().get(scope);
-            if (mappings != null) {
-                addMappings(context, userDto, mappings);
-            }
-        }
+        Map<String, List<OAuth2ClaimDto>> scopedClaimsMap = oAuth2ClaimService.getScopedClaimsMap();
+        List<OAuth2ClaimDto> alwaysClaims = oAuth2ClaimService.getAlwaysClaims();
+        List<OAuth2ClaimDto> allClaims = oAuth2ClaimService.getAllClaims();
+
+        Set<String> authorizedClaims = context.getAuthorizedScopes()
+                .stream()
+                .flatMap(scope -> scopedClaimsMap
+                        .getOrDefault(scope, List.of())
+                        .stream())
+                .map(OAuth2ClaimDto::name)
+                .collect(Collectors.toSet());
+
+        authorizedClaims.addAll(alwaysClaims.stream()
+                .map(OAuth2ClaimDto::name)
+                .collect(Collectors.toSet()));
+
+        Map<String, String> authorizedMappings = allClaims
+                .stream()
+                .filter(claim -> authorizedClaims.contains(claim.name()))
+                .collect(Collectors.toMap(
+                        OAuth2ClaimDto::name,
+                        OAuth2ClaimDto::userProperty
+                ));
+
+        addMappings(context, userDto, authorizedMappings);
     }
 
     private void addMappings(JwtEncodingContext context, UserDto userDto, Map<String, String> mappings) {
@@ -88,7 +110,7 @@ public class UserJwtTokenCustomizer implements OAuth2TokenCustomizer<JwtEncoding
             if (resolver != null) {
                 context.getClaims().claim(claim, resolver.apply(userDto));
             } else {
-                log.warn("Unknown User property configured for JWT claim: {}", property);
+                log.warn("User property non valida per il configured for JWT claim: {}", property);
             }
         });
     }
