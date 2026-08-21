@@ -110,7 +110,7 @@ public class UserJwtTokenCustomizer implements OAuth2TokenCustomizer<JwtEncoding
             if (resolver != null) {
                 context.getClaims().claim(claim, resolver.apply(userDto));
             } else {
-                log.warn("User property non valida per il configured for JWT claim: {}", property);
+                log.warn("User property non valida per il claim JWT {}", property);
             }
         });
     }

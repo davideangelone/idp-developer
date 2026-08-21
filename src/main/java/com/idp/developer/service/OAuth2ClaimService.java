@@ -56,7 +56,7 @@ public class OAuth2ClaimService {
         for (Map.Entry<String, Set<String>> entry : mappings.entrySet()) {
             OAuth2Scope scope = oAuth2ScopeRepository
                     .findByName(entry.getKey())
-                    .orElseGet(OAuth2Scope::new);
+                    .orElseThrow(() -> new IllegalArgumentException("Scope non esistente: " + entry.getKey()));
             Set<OAuth2Claim> claims = oAuth2ClaimRepository.findByNameIn(entry.getValue());
             scope.setClaims(claims);
         }
