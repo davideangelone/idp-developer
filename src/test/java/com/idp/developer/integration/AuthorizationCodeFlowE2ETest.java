@@ -513,7 +513,7 @@ class AuthorizationCodeFlowE2ETest extends AbstractIdpIntegrationMockMvcTest {
                 .stream()
                 .filter(client -> "public-client".equals(client.getClientId()))
                 .findFirst()
-                .orElseThrow(() -> new IllegalStateException("public-client not configured"));
+                .orElseThrow(() -> new IllegalStateException("public-client non configurato"));
 
         assertThat(publicClient.getClientSecret()).isEmpty();
         assertThat(publicClient.getClientAuthenticationMethods()).containsExactly("none");
@@ -562,7 +562,7 @@ class AuthorizationCodeFlowE2ETest extends AbstractIdpIntegrationMockMvcTest {
         String consentState = extractInputValue(consentPage.body(), "state");
         List<String> scopes = extractScopeValues(consentPage.body());
 
-        assertThat(scopes) .containsExactlyInAnyOrder("profile", "email");
+        assertThat(scopes).containsExactlyInAnyOrder("profile", "email");
 
         StringBuilder consentBody = new StringBuilder()
                 .append("client_id=").append(publicClient.getClientId())
@@ -622,6 +622,213 @@ class AuthorizationCodeFlowE2ETest extends AbstractIdpIntegrationMockMvcTest {
                         "id_token",
                         "token_type",
                         "expires_in")
-                .containsEntry("token_type", "Bearer");
+                .containsEntry("token_type", "Bearer")
+
+                // public-client abilita solo authorization_code (nessun refresh_token tra i grant type),
+                // coerente con config-oauth2-clients.yml.
+                .doesNotContainKey("refresh_token");
     }
+
+    @Test
+    @DisplayName("Public client con code_verifier errato: il client si autentica ma il grant PKCE viene rifiutato")
+    void publicClient_wrongCodeVerifier_returnsInvalidGrant() throws Exception {
+
+        OAuth2ClientProperties publicClient = configProperties.getOauth2Clients()
+                .stream()
+                .filter(client -> "public-client".equals(client.getClientId()))
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException("public-client non configurato"));
+
+        String redirectUri = publicClient.getRedirectUris().getFirst();
+
+        String codeVerifier = generateCodeVerifier();
+        String codeChallenge = generateCodeChallenge(codeVerifier);
+        String state = generateRandomState();
+
+        // 1. Authorization request
+        String authQuery = "response_type=code"
+                + "&client_id=" + publicClient.getClientId()
+                + "&redirect_uri=" + URLEncoder.encode(redirectUri, StandardCharsets.UTF_8)
+                + "&scope=" + URLEncoder.encode("openid profile email", StandardCharsets.UTF_8)
+                + "&state=" + state
+                + "&code_challenge=" + codeChallenge
+                + "&code_challenge_method=S256";
+
+        HttpResponse<String> authResponse = httpClient.send(
+                request(URI.create(baseUrl + "/oauth2/authorize?" + authQuery))
+                        .header("Accept", "text/html")
+                        .GET()
+                        .build(),
+                HttpResponse.BodyHandlers.ofString());
+
+        assertThat(authResponse.statusCode()).isEqualTo(HttpStatus.FOUND.value());
+        assertThat(locationOf(authResponse)).contains("/login");
+
+        // 2. Login
+        HttpResponse<String> loginResponse = getLoginResponse(resolve(locationOf(authResponse)));
+        assertThat(locationOf(loginResponse)).contains("/oauth2/authorize");
+
+        // 3. Consent
+        HttpResponse<String> consentPage = httpClient.send(
+                request(resolve(locationOf(loginResponse)))
+                        .header("Accept", "text/html")
+                        .GET()
+                        .build(),
+                HttpResponse.BodyHandlers.ofString());
+
+        assertThat(consentPage.statusCode()).isEqualTo(HttpStatus.OK.value());
+
+        String consentState = extractInputValue(consentPage.body(), "state");
+        List<String> scopes = extractScopeValues(consentPage.body());
+
+        StringBuilder consentBody = new StringBuilder()
+                .append("client_id=").append(publicClient.getClientId())
+                .append("&state=").append(consentState);
+
+        for (String scope : scopes) {
+            consentBody.append("&scope=").append(scope);
+        }
+
+        HttpResponse<String> consentResponse = httpClient.send(
+                request(URI.create(baseUrl + "/oauth2/authorize"))
+                        .header("Content-Type", "application/x-www-form-urlencoded")
+                        .POST(HttpRequest.BodyPublishers.ofString(consentBody.toString()))
+                        .build(),
+                HttpResponse.BodyHandlers.ofString());
+
+        assertThat(consentResponse.statusCode()).isEqualTo(HttpStatus.FOUND.value());
+
+        String codeLocation = locationOf(consentResponse);
+        assertThat(codeLocation).startsWith(redirectUri);
+        String code = extractParam(codeLocation, "code");
+        assertThat(code).isNotNull().isNotEmpty();
+
+        // 4. Token exchange con un code_verifier PRESENTE ma sbagliato.
+        //
+        // Il client si autentica correttamente (per il metodo "none" basta che il parametro ci
+        // sia), ma la verifica crittografica PKCE a livello di grant fallisce -> invalid_grant.
+        // A differenza di un client confidenziale, qui non esiste un client secret di riserva:
+        // PKCE è l'unica cosa che protegge lo scambio del code.
+        String wrongVerifier = generateCodeVerifier();
+        String tokenBody = "grant_type=authorization_code"
+                + "&client_id=" + URLEncoder.encode(publicClient.getClientId(), StandardCharsets.UTF_8)
+                + "&code=" + code
+                + "&redirect_uri=" + URLEncoder.encode(redirectUri, StandardCharsets.UTF_8)
+                + "&code_verifier=" + wrongVerifier;
+
+        HttpResponse<String> tokenResponse = httpClient.send(
+                request(URI.create(baseUrl + "/oauth2/token"))
+                        .header("Content-Type", "application/x-www-form-urlencoded")
+                        .POST(HttpRequest.BodyPublishers.ofString(tokenBody))
+                        .build(),
+                HttpResponse.BodyHandlers.ofString());
+
+        assertThat(tokenResponse.statusCode()).isEqualTo(HttpStatus.BAD_REQUEST.value());
+
+        Map<String, Object> error = parseJson(tokenResponse.body());
+        assertThat(error).containsEntry("error", "invalid_grant");
+    }
+
+    @Test
+    @DisplayName("Public client senza code_verifier: manca l'unica prova di identità del client, l'autenticazione fallisce")
+    void publicClient_missingCodeVerifier_returnsInvalidClient() throws Exception {
+
+        OAuth2ClientProperties publicClient = configProperties.getOauth2Clients()
+                .stream()
+                .filter(client -> "public-client".equals(client.getClientId()))
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException("public-client non configurato"));
+
+        String redirectUri = publicClient.getRedirectUris().getFirst();
+
+        String codeVerifier = generateCodeVerifier();
+        String codeChallenge = generateCodeChallenge(codeVerifier);
+        String state = generateRandomState();
+
+        // 1. Authorization request
+        String authQuery = "response_type=code"
+                + "&client_id=" + publicClient.getClientId()
+                + "&redirect_uri=" + URLEncoder.encode(redirectUri, StandardCharsets.UTF_8)
+                + "&scope=" + URLEncoder.encode("openid profile email", StandardCharsets.UTF_8)
+                + "&state=" + state
+                + "&code_challenge=" + codeChallenge
+                + "&code_challenge_method=S256";
+
+        HttpResponse<String> authResponse = httpClient.send(
+                request(URI.create(baseUrl + "/oauth2/authorize?" + authQuery))
+                        .header("Accept", "text/html")
+                        .GET()
+                        .build(),
+                HttpResponse.BodyHandlers.ofString());
+
+        assertThat(authResponse.statusCode()).isEqualTo(HttpStatus.FOUND.value());
+        assertThat(locationOf(authResponse)).contains("/login");
+
+        // 2. Login
+        HttpResponse<String> loginResponse = getLoginResponse(resolve(locationOf(authResponse)));
+        assertThat(locationOf(loginResponse)).contains("/oauth2/authorize");
+
+        // 3. Consent
+        HttpResponse<String> consentPage = httpClient.send(
+                request(resolve(locationOf(loginResponse)))
+                        .header("Accept", "text/html")
+                        .GET()
+                        .build(),
+                HttpResponse.BodyHandlers.ofString());
+
+        assertThat(consentPage.statusCode()).isEqualTo(HttpStatus.OK.value());
+
+        String consentState = extractInputValue(consentPage.body(), "state");
+        List<String> scopes = extractScopeValues(consentPage.body());
+
+        StringBuilder consentBody = new StringBuilder()
+                .append("client_id=").append(publicClient.getClientId())
+                .append("&state=").append(consentState);
+
+        for (String scope : scopes) {
+            consentBody.append("&scope=").append(scope);
+        }
+
+        HttpResponse<String> consentResponse = httpClient.send(
+                request(URI.create(baseUrl + "/oauth2/authorize"))
+                        .header("Content-Type", "application/x-www-form-urlencoded")
+                        .POST(HttpRequest.BodyPublishers.ofString(consentBody.toString()))
+                        .build(),
+                HttpResponse.BodyHandlers.ofString());
+
+        assertThat(consentResponse.statusCode()).isEqualTo(HttpStatus.FOUND.value());
+
+        String codeLocation = locationOf(consentResponse);
+        assertThat(codeLocation).startsWith(redirectUri);
+        String code = extractParam(codeLocation, "code");
+        assertThat(code).isNotNull().isNotEmpty();
+
+        // 4. Token exchange SENZA code_verifier.
+        //
+        // Per un client confidenziale, il client-auth (client_secret) e la verifica PKCE sono due
+        // fasi separate: prima si autentica il client, poi si valida il grant. Per un client
+        // pubblico (client-authentication-methods=[none]) non c'è secret da verificare: Spring
+        // Authorization Server usa la sola presenza del code_verifier come prova minima di
+        // autenticazione del client (PublicClientAuthenticationProvider). Se manca del tutto,
+        // l'autenticazione del client fallisce ancora prima della validazione del grant
+        // -> 400 Bad Request con error=invalid_client (non invalid_grant, che si ottiene invece
+        // con un verifier presente ma sbagliato: vedi il test seguente).
+        String tokenBody = "grant_type=authorization_code"
+                + "&client_id=" + URLEncoder.encode(publicClient.getClientId(), StandardCharsets.UTF_8)
+                + "&code=" + code
+                + "&redirect_uri=" + URLEncoder.encode(redirectUri, StandardCharsets.UTF_8);
+
+        HttpResponse<String> tokenResponse = httpClient.send(
+                request(URI.create(baseUrl + "/oauth2/token"))
+                        .header("Content-Type", "application/x-www-form-urlencoded")
+                        .POST(HttpRequest.BodyPublishers.ofString(tokenBody))
+                        .build(),
+                HttpResponse.BodyHandlers.ofString());
+
+        assertThat(tokenResponse.statusCode()).isEqualTo(HttpStatus.BAD_REQUEST.value());
+
+        Map<String, Object> error = parseJson(tokenResponse.body());
+        assertThat(error).containsEntry("error", "invalid_client");
+    }
+
 }
