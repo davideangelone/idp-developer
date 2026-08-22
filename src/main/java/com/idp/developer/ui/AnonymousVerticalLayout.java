@@ -1,6 +1,9 @@
 package com.idp.developer.ui;
 
 import java.time.Duration;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.Collection;
 import java.util.List;
 import java.util.StringJoiner;
@@ -18,6 +21,8 @@ import com.vaadin.flow.server.auth.AnonymousAllowed;
 
 @AnonymousAllowed
 public class AnonymousVerticalLayout extends VerticalLayout {
+
+    private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
 
     protected TextField readOnlyField(String label, String value) {
         TextField field = new TextField(label);
@@ -125,5 +130,9 @@ public class AnonymousVerticalLayout extends VerticalLayout {
         notification.setDuration(5000);
 
         notification.open();
+    }
+
+    protected String formatInstant(Instant instant) {
+        return instant.atZone(ZoneId.systemDefault()).format(DATE_TIME_FORMATTER);
     }
 }

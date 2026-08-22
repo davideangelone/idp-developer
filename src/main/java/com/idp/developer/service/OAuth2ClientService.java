@@ -53,7 +53,6 @@ public class OAuth2ClientService {
         OAuth2Client client = oAuth2ClientRepository.findById(dto.id())
                 .orElseThrow(() -> new IllegalArgumentException("OAuth2 client non trovato: " + dto.id()));
 
-        client.setClientId(dto.clientId());
         client.setClientSecret(dto.clientSecret());
         client.setDescription(dto.description());
         client.setClientUrl(dto.clientUrl());

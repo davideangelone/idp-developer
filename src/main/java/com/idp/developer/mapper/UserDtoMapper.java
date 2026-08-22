@@ -18,4 +18,5 @@ public interface UserDtoMapper {
     default String map(Group group) {
         return group.getName();
     }
+
 }

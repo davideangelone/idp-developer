@@ -308,7 +308,6 @@ public class ClientsView extends AnonymousVerticalLayout {
             try {
                 OAuth2ClientUpdateDto updateDto = new OAuth2ClientUpdateDto(
                         oAuth2ClientDto.id(),
-                        oAuth2ClientDto.clientId(),
                         clientSecret.getValue(),
                         description.getValue(),
                         clientUrl.getValue(),

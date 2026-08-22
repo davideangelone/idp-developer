@@ -6,7 +6,6 @@ import java.util.Set;
 
 public record OAuth2ClientUpdateDto(
         Long id,
-        String clientId,
         String clientSecret,
         String description,
         String clientUrl,

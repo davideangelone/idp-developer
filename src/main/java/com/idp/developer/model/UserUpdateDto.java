@@ -1,13 +1,11 @@
 package com.idp.developer.model;
 
-import java.time.Instant;
 import java.util.Set;
 
-public record UserDto(
+public record UserUpdateDto(
         Long id,
         String firstName,
         String lastName,
-        String username,
         String password,
         String email,
         boolean emailVerified,
@@ -18,9 +16,7 @@ public record UserDto(
         boolean enabled,
         boolean accountNonExpired,
         boolean accountNonLocked,
-        boolean credentialsNonExpired,
-        Instant createdAt,
-        Instant updatedAt) {
+        boolean credentialsNonExpired) {
 
     public String getFullName() {
         return firstName + " " + lastName;

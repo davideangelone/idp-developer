@@ -16,4 +16,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @EntityGraph(attributePaths = {"roles", "groups"})
     @Override
     @NullMarked List<User> findAll();
+
+    boolean existsByUsername(String username);
 }
