@@ -16,9 +16,5 @@ public record UserUpdateDto(
         boolean enabled,
         boolean accountNonExpired,
         boolean accountNonLocked,
-        boolean credentialsNonExpired) {
-
-    public String getFullName() {
-        return firstName + " " + lastName;
-    }
+        boolean credentialsNonExpired) implements UserDtoInterface {
 }

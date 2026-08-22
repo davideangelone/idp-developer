@@ -89,15 +89,26 @@ public class UsersView extends AnonymousVerticalLayout {
         username.getStyle().set("overflow", "hidden");
         username.setWidthFull();
 
+        PasswordField password = new PasswordField("Password");
+        password.getStyle().set("overflow", "hidden");
+        password.setWidthFull();
+
         Button cancel = new Button("Annulla", event -> dialog.close());
 
         Button create = new Button("Crea", event -> {
             try {
                 String usernameValue = username.getValue().trim();
+                String passwordValue = password.getValue();
 
                 if (usernameValue.isBlank()) {
                     username.setInvalid(true);
-                    username.setErrorMessage("Username è obbligatorio");
+                    username.setErrorMessage("Inserire lo username");
+                    return;
+                }
+
+                if (passwordValue.isBlank()) {
+                    password.setInvalid(true);
+                    password.setErrorMessage("Inserire la password");
                     return;
                 }
 
@@ -107,7 +118,7 @@ public class UsersView extends AnonymousVerticalLayout {
                     return;
                 }
 
-                UserDto user = userService.createUser(usernameValue);
+                UserDto user = userService.createUser(usernameValue, passwordValue);
                 log.info("Utente {} creato con successo", usernameValue);
 
                 Div row = createUserRow(authorizationServer, userService, user, deleteButton);
@@ -127,6 +138,7 @@ public class UsersView extends AnonymousVerticalLayout {
         create.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
 
         dialog.add(username);
+        dialog.add(password);
         dialog.getFooter().add(cancel, create);
 
         dialog.open();

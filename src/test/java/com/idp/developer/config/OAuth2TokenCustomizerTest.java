@@ -1,5 +1,6 @@
 package com.idp.developer.config;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -68,7 +69,9 @@ class OAuth2TokenCustomizerTest {
                 "test", "password",
                 "test@email.com", true,
                 "Via Roma 1", "+39 333 1234567",
-                Set.of("USER"), Set.of("users")
+                Set.of("USER"), Set.of("users"),
+                true, true, true, true,
+                Instant.now(), Instant.now()
         );
 
         alwaysClaims = List.of(

@@ -20,9 +20,5 @@ public record UserDto(
         boolean accountNonLocked,
         boolean credentialsNonExpired,
         Instant createdAt,
-        Instant updatedAt) {
-
-    public String getFullName() {
-        return firstName + " " + lastName;
-    }
+        Instant updatedAt) implements UserDtoInterface {
 }

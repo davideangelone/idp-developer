@@ -70,7 +70,7 @@ public class UserService {
     }
 
     @Transactional
-    public UserDto createUser(String username) {
+    public UserDto createUser(String username, String password) {
 
         if (userRepository.existsByUsername(username)) {
             throw new IllegalArgumentException("Utente già esistente: " + username);
@@ -80,14 +80,14 @@ public class UserService {
         user.setUsername(username);
         user.setFirstName("");
         user.setLastName("");
-        user.setPassword("");
+        user.setPassword(passwordEncoder.encode(password));
         user.setEmail("");
         user.setEmailVerified(true);
         user.setAddress("");
         user.setPhoneNumber("");
         user.setRoles(Set.of());
         user.setGroups(Set.of());
-        user.setEnabled(true);
+        user.setEnabled(false);
         user.setAccountNonExpired(true);
         user.setAccountNonLocked(true);
         user.setCredentialsNonExpired(true);
