@@ -1,5 +1,6 @@
 package com.idp.developer.ui;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -22,6 +23,9 @@ import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.icon.Icon;
+import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.shared.Tooltip;
 import com.vaadin.flow.component.textfield.PasswordField;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.value.ValueChangeMode;
@@ -161,10 +165,13 @@ public class UsersView extends AnonymousVerticalLayout {
             deleteButton.setEnabled(!selectedUsers.isEmpty());
         });
 
-        Details details = createDetails(authorizationServer, userService, user);
+        Icon loginStatusIcon = getLoginStatusIcon(user.enabled(), user.accountNonExpired(), user.accountNonLocked(), user.credentialsNonExpired());
+        Div loginStatus = new Div(loginStatusIcon);
+
+        Details details = createDetails(authorizationServer, userService, user, loginStatus);
         details.setWidthFull();
 
-        Div row = new Div(selected, details);
+        Div row = new Div(selected, loginStatus, details);
         row.getStyle()
                 .setDisplay(Style.Display.FLEX)
                 .setAlignItems(Style.AlignItems.FLEX_START)
@@ -175,7 +182,51 @@ public class UsersView extends AnonymousVerticalLayout {
         return row;
     }
 
-    private Details createDetails(AuthorizationServerDto authorizationServer, UserService userService, UserDto user) {
+    private @NonNull Icon getLoginStatusIcon(boolean enabled, boolean accountNonExpired, boolean accountNonLocked, boolean credentialsNonExpired) {
+        boolean loginAllowed = enabled && accountNonExpired && accountNonLocked && credentialsNonExpired;
+
+        Icon loginStatusIcon;
+
+        if (loginAllowed) {
+            loginStatusIcon = VaadinIcon.CHECK_CIRCLE.create();
+            loginStatusIcon.setColor("green");
+        } else {
+            loginStatusIcon = VaadinIcon.BAN.create();
+            loginStatusIcon.setColor("red");
+
+            Tooltip.forComponent(loginStatusIcon)
+                    .withText(getLoginStatusDescription(enabled, accountNonExpired, accountNonLocked, credentialsNonExpired));
+        }
+
+        loginStatusIcon.getStyle()
+                .setMarginTop("1.05rem")
+                .setMarginRight("var(--lumo-space-s)")
+                .setMarginLeft("0.75rem")
+                .setWidth("1.25rem")
+                .setMinWidth("1.25rem");
+        return loginStatusIcon;
+    }
+
+    private String getLoginStatusDescription(boolean enabled, boolean accountNonExpired, boolean accountNonLocked, boolean credentialsNonExpired) {
+        List<String> errors = new ArrayList<>();
+
+        if (!enabled) {
+            errors.add("Utente disabilitato");
+        }
+        if (!accountNonExpired) {
+            errors.add("Account scaduto");
+        }
+        if (!accountNonLocked) {
+            errors.add("Account bloccato");
+        }
+        if (!credentialsNonExpired) {
+            errors.add("Credenziali scadute");
+        }
+
+        return String.join(", ", errors);
+    }
+
+    private Details createDetails(AuthorizationServerDto authorizationServer, UserService userService, UserDto user, Div loginStatus) {
 
         Span title = new Span(getFullname(user.firstName(), user.lastName(), user.username()));
         title.getStyle().setFontWeight("bold");
@@ -195,11 +246,11 @@ public class UsersView extends AnonymousVerticalLayout {
 
         return new Details(
                 summary,
-                createUserPanel(authorizationServer, userService, user, title)
+                createUserPanel(authorizationServer, userService, user, title, loginStatus)
         );
     }
 
-    private FormLayout createUserPanel(AuthorizationServerDto authorizationServerDto, UserService userService, UserDto user, Span title) {
+    private FormLayout createUserPanel(AuthorizationServerDto authorizationServerDto, UserService userService, UserDto user, Span title, Div loginStatus) {
 
         FormLayout layout = new FormLayout();
 
@@ -282,6 +333,9 @@ public class UsersView extends AnonymousVerticalLayout {
                 userService.updateUser(updateDto);
 
                 openUsersUpdatedNotification(user.username());
+
+                updateLoginStatusIcon(updateDto, loginStatus);
+
                 log.info("Utente [{}] aggiornato", user.username());
             } catch (Exception e) {
                 log.error("Errore durante l'aggiornamento dell'utente {}", user.username(), e);
@@ -312,6 +366,13 @@ public class UsersView extends AnonymousVerticalLayout {
         );
 
         return layout;
+    }
+
+    private void updateLoginStatusIcon(UserUpdateDto user, Div loginStatus) {
+        Icon loginStatusIcon = getLoginStatusIcon(user.enabled(), user.accountNonExpired(), user.accountNonLocked(), user.credentialsNonExpired());
+
+        loginStatus.removeAll();
+        loginStatus.add(loginStatusIcon);
     }
 
     private String getFullname(String firstName, String lastName, String username) {
