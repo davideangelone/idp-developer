@@ -11,6 +11,7 @@ import com.idp.developer.repository.GroupRepository;
 import com.idp.developer.repository.RoleRepository;
 import com.idp.developer.repository.UserRepository;
 import jakarta.transaction.Transactional;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -20,12 +21,15 @@ public class UserService {
     private final RoleRepository roleRepository;
     private final GroupRepository groupRepository;
     private final UserDtoMapper userDtoMapper;
+    private final PasswordEncoder passwordEncoder;
 
-    public UserService(UserRepository userRepository, RoleRepository roleRepository, GroupRepository groupRepository, UserDtoMapper userDtoMapper) {
+    public UserService(UserRepository userRepository, RoleRepository roleRepository, GroupRepository groupRepository,
+                       UserDtoMapper userDtoMapper, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.groupRepository = groupRepository;
         this.userDtoMapper = userDtoMapper;
+        this.passwordEncoder = passwordEncoder;
     }
 
     public List<UserDto> getAllUsers() {
@@ -45,12 +49,11 @@ public class UserService {
 
         user.setFirstName(dto.firstName());
         user.setLastName(dto.lastName());
-        user.setPassword(dto.password());
+        user.setPassword(passwordEncoder.encode(dto.password()));
         user.setEmail(dto.email());
         user.setEmailVerified(dto.emailVerified());
         user.setAddress(dto.address());
         user.setPhoneNumber(dto.phoneNumber());
-        user.setPassword(dto.password());
         user.setRoles(roleRepository.findByNameIn(dto.roles()));
         user.setGroups(groupRepository.findByNameIn(dto.groups()));
         user.setEnabled(dto.enabled());
