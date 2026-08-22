@@ -24,6 +24,7 @@ import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.textfield.PasswordField;
 import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.data.value.ValueChangeMode;
 import com.vaadin.flow.dom.Style;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
@@ -164,7 +165,7 @@ public class UsersView extends AnonymousVerticalLayout {
 
     private Details createDetails(AuthorizationServerDto authorizationServer, UserService userService, UserDto user) {
 
-        Span title = new Span(user.getFullName());
+        Span title = new Span(getFullname(user.firstName(), user.lastName(), user.username()));
         title.getStyle().setFontWeight("bold");
 
         Span subtitle = new Span(user.username());
@@ -182,11 +183,11 @@ public class UsersView extends AnonymousVerticalLayout {
 
         return new Details(
                 summary,
-                createUserPanel(authorizationServer, userService, user)
+                createUserPanel(authorizationServer, userService, user, title)
         );
     }
 
-    private FormLayout createUserPanel(AuthorizationServerDto authorizationServerDto, UserService userService, UserDto user) {
+    private FormLayout createUserPanel(AuthorizationServerDto authorizationServerDto, UserService userService, UserDto user, Span title) {
 
         FormLayout layout = new FormLayout();
 
@@ -197,9 +198,18 @@ public class UsersView extends AnonymousVerticalLayout {
 
         TextField firstName = new TextField("First Name");
         firstName.setValue(user.firstName());
+        firstName.setValueChangeMode(ValueChangeMode.EAGER);
 
         TextField lastName = new TextField("Last Name");
         lastName.setValue(user.lastName());
+        lastName.setValueChangeMode(ValueChangeMode.EAGER);
+
+        firstName.addValueChangeListener(event ->
+                title.setText(getFullname(event.getValue(), lastName.getValue(), username.getValue()))
+        );
+        lastName.addValueChangeListener(event ->
+                title.setText(getFullname(firstName.getValue(), event.getValue(), username.getValue()))
+        );
 
         PasswordField password = new PasswordField("Password");
         password.setValue(user.password());
@@ -290,6 +300,11 @@ public class UsersView extends AnonymousVerticalLayout {
         );
 
         return layout;
+    }
+
+    private String getFullname(String firstName, String lastName, String username) {
+        String fullname = (firstName.trim() + " " + lastName.trim()).trim();
+        return fullname.isEmpty() ? username : fullname;
     }
 
     private Span getUserSpan() {
